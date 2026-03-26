@@ -2,18 +2,20 @@
 
 <!DOCTYPE html>
 <html lang="ru">
+<link href="css/core/base.css" type="text/css" rel="stylesheet">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GraphSocial</title>
 </head>
 <body>
+
     <div class="container">
         <h1>GraphSocial</h1>
         <button onclick="checkHealth()">Проверить статус сервера</button>
-        <div id="healthResult" style="margin-top: 20px;"></div>
+        <div id="healthResult"></div>
     </div>
-    <script src="js/core/healthcheck.js">
-    </script>
+
+    <script src="js/core/healthcheck.js"></script>
 </body>
 </html>

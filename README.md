@@ -1,15 +1,19 @@
-GraphSocial/
-├── backend/
-│   ├── app/
-│   │   ├── __init__.py
-│   │   ├── main.py              # FastAPI приложение
-│   │   └── core/
-│   │       ├── __init__.py
-│   │       └── config.py        # Настройки (пока простые)
-│   ├── requirements.txt
-│   └── run.py                   # Точка входа для uvicorn
-├── frontend/
-│   └── index.html               # Простая HTML страница (пока без JS логики)
-├── .gitignore
-├── .env.example
-└── README.md
+# GraphSocial
+
+## Релиз GRAPH-0 ✅
+
+**Что сделано:**
+- Настроен FastAPI сервер
+- Добавлен healthcheck эндпоинт (`GET /health`)
+- Создана базовая HTML страница с проверкой подключения
+- Организована структура frontend с разделением JS логики
+
+**Запуск:**
+```bash
+# Backend
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+
+# Frontend
+# Открыть frontend/index.html в браузере
