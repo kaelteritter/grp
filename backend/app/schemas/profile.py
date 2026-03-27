@@ -4,7 +4,6 @@ from enum import Enum
 from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 from typing import Optional
-from enum import Enum
 
 
 class Gender(str, Enum):
@@ -12,7 +11,6 @@ class Gender(str, Enum):
     FEMALE = "female"
 
 
-# Базовый класс с общими полями
 class ProfileBaseSchema(BaseModel):
     first_name: Optional[str] = Field(None, max_length=255)
     middle_name: Optional[str] = Field(None, max_length=255)
@@ -62,8 +60,14 @@ class ProfileCreateSchema(ProfileBaseSchema):
     pass
 
 
-class ProfileUpdateSchema(ProfileBaseSchema):
-    pass
+class ProfileUpdateSchema(BaseModel):
+    first_name: Optional[str] = Field(None, max_length=255)
+    middle_name: Optional[str] = Field(None, max_length=255)
+    last_name: Optional[str] = Field(None, max_length=255)
+    sex: Optional[Gender] = None
+    birth_year: Optional[int] = Field(None, ge=1900, le=datetime.now().year)
+    birth_month: Optional[int] = Field(None, ge=1, le=12)
+    birth_day: Optional[int] = Field(None, ge=1, le=31)
 
 
 
