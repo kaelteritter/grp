@@ -1,7 +1,8 @@
 # backend/app/models/profile.py
+from datetime import datetime
 import enum
 
-from sqlalchemy import CheckConstraint, Enum, Integer, String
+from sqlalchemy import CheckConstraint, DateTime, Enum, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -42,6 +43,16 @@ class Profile(Base):
     birth_year: Mapped[int] = mapped_column(Integer, nullable=True)
     birth_month: Mapped[int] = mapped_column(Integer, nullable=True)
     birth_day: Mapped[int] = mapped_column(Integer, nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, 
+        default=datetime.now,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, 
+        default=datetime.now,
+        onupdate=datetime.now,
+    )
 
     __table_args__ = (
         CheckConstraint(
