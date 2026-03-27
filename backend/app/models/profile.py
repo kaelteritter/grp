@@ -1,0 +1,92 @@
+# backend/app/models/profile.py
+import enum
+
+from sqlalchemy import CheckConstraint, Enum, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.db.base import Base
+
+
+class Gender(str, enum.Enum):
+    MALE = "male"
+    FEMALE = "female"
+
+
+class Profile(Base):
+    """
+    Таблица профилей.
+    Обязательно только ID
+    Дату рождения необходимо разделить на части, потому что может быть известно
+    только два или один из трех параметров
+    """
+    __tablename__ = "profiles"
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+    first_name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+    middle_name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+    last_name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+    sex: Mapped[Gender] = mapped_column(Enum(Gender), default=Gender.MALE)
+    birth_year: Mapped[int] = mapped_column(Integer, nullable=True)
+    birth_month: Mapped[int] = mapped_column(Integer, nullable=True)
+    birth_day: Mapped[int] = mapped_column(Integer, nullable=True)
+
+    __table_args__ = (
+        CheckConstraint(
+            "birth_year IS NULL OR (birth_year BETWEEN 1900 AND strftime('%Y', 'now'))",
+            name="check_birth_year_range"
+        ),
+        CheckConstraint(
+            "birth_month IS NULL OR (birth_month BETWEEN 1 AND 12)",
+            name="check_birth_month_range"
+        ),
+        CheckConstraint(
+            "birth_day IS NULL OR (birth_day BETWEEN 1 AND 31)",
+            name="check_birth_day_range"
+        ),
+        CheckConstraint(
+            """
+            (
+                birth_year IS NULL OR 
+                birth_month IS NULL OR 
+                birth_day IS NULL OR
+                (
+                    birth_day <= CASE birth_month
+                        WHEN 1 THEN 31
+                        WHEN 2 THEN (
+                            CASE 
+                                WHEN (birth_year % 4 = 0 AND birth_year % 100 != 0) 
+                                     OR (birth_year % 400 = 0) 
+                                THEN 29 
+                                ELSE 28 
+                            END
+                        )
+                        WHEN 3 THEN 31
+                        WHEN 4 THEN 30
+                        WHEN 5 THEN 31
+                        WHEN 6 THEN 30
+                        WHEN 7 THEN 31
+                        WHEN 8 THEN 31
+                        WHEN 9 THEN 30
+                        WHEN 10 THEN 31
+                        WHEN 11 THEN 30
+                        WHEN 12 THEN 31
+                    END
+                )
+            )
+            """,
+            name="check_valid_date"
+        ),
+    )
