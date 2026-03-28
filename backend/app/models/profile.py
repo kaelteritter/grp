@@ -1,4 +1,3 @@
-# backend/app/models/profile.py
 from datetime import datetime
 import enum
 
@@ -45,20 +44,18 @@ class Profile(Base):
     birth_day: Mapped[int] = mapped_column(Integer, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, 
+        DateTime,
         default=datetime.now,
+        nullable=False
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime, 
+        DateTime,
         default=datetime.now,
         onupdate=datetime.now,
+        nullable=False
     )
 
     __table_args__ = (
-        CheckConstraint(
-            "birth_year IS NULL OR (birth_year BETWEEN 1900 AND strftime('%Y', 'now'))",
-            name="check_birth_year_range"
-        ),
         CheckConstraint(
             "birth_month IS NULL OR (birth_month BETWEEN 1 AND 12)",
             name="check_birth_month_range"

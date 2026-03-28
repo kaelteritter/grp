@@ -1,11 +1,12 @@
 # backend/app/main.py
 
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
-from backend.app.core.database import get_db
+from app.core.database import SessionDep
+
+from app.api.v1.endpoints import profile_router
 
 app = FastAPI(title=settings.APP_NAME, debug=settings.DEBUG)
 
@@ -17,13 +18,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(profile_router)
+
 @app.get("/health")
 async def health_check():
     return {"status": "ok", "service": settings.APP_NAME}
 
 
 @app.get("/health/db")
-async def db_health_check(db: AsyncSession = Depends(get_db)):
+async def db_health_check(db: SessionDep):
     try:
         await db.execute(text("SELECT 1"))
         return {"status": "ok", "database": "connected"}

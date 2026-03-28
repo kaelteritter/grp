@@ -6,3 +6,6 @@ pydantic-settings
 sqlalchemy
 aiosqlite
 greenlet
+pytest
+pytest_asyncio
+httpx

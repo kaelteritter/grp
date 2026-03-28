@@ -25,7 +25,12 @@ async def read_profile(db: AsyncSession, profile_id: int):
     """
     stmt = select(Profile).where(Profile.id == profile_id)
     result = await db.execute(stmt)
-    return result.scalar_one_or_none()
+    profile = result.scalar_one_or_none()
+
+    if not profile:
+        raise HTTPException(status_code=404, detail="Профиль не найден")
+
+    return profile
 
 
 async def read_profiles(db: AsyncSession):

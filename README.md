@@ -17,3 +17,8 @@ uvicorn app.main:app --reload
 
 # Frontend
 # Открыть frontend/index.html в браузере
+
+
+```bash
+
+```

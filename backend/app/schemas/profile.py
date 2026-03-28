@@ -19,6 +19,15 @@ class ProfileBaseSchema(BaseModel):
     birth_year: Optional[int] = Field(None, ge=1900, le=datetime.now().year)
     birth_month: Optional[int] = Field(None, ge=1, le=12)
     birth_day: Optional[int] = Field(None, ge=1, le=31)
+
+    @field_validator('birth_year')
+    @classmethod
+    def validate_birth_year_not_future(cls, v):
+        if v is not None:
+            current_year = datetime.now().year
+            if v > current_year:
+                raise ValueError(f"Год рождения не может быть в будущем (максимум {current_year})")
+        return v
     
     @field_validator('birth_day', 'birth_month', 'birth_year')
     @classmethod
