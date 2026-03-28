@@ -1,23 +1,143 @@
-import { createProfile } from '../api/profiles.js';
+import { createProfile, updateProfile } from '../api/profiles.js';
 import { renderProfilesList } from './profile_list.js';
 import { showNotification } from './notifications.js';
 
-let modalInstance = null;
+let createModalInstance = null;
+let editModalInstance = null;
 
+// Рендеринг модального окна для создания
 export async function renderModal() {
-    // Если модальное окно уже существует, возвращаем его
-    if (modalInstance) {
-        return modalInstance;
+    if (createModalInstance) {
+        return createModalInstance;
     }
     
-    // Создаем элемент модального окна
+    const modal = createModalElement('Добавить профиль', null);
+    document.body.appendChild(modal.element);
+    
+    const closeModal = () => {
+        modal.element.style.display = 'none';
+    };
+    
+    modal.close = closeModal;
+    
+    modal.element.querySelector('.close').onclick = closeModal;
+    modal.element.querySelector('#cancelBtn').onclick = closeModal;
+    
+    window.onclick = (event) => {
+        if (event.target === modal.element) {
+            closeModal();
+        }
+    };
+    
+    modal.element.querySelector('#profileForm').onsubmit = async (event) => {
+        event.preventDefault();
+        const formData = getFormData();
+        
+        if (!formData.first_name && !formData.last_name) {
+            showNotification('Укажите хотя бы имя или фамилию', 'error');
+            return;
+        }
+        
+        const submitBtn = modal.element.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Создание...';
+        submitBtn.disabled = true;
+        
+        try {
+            await createProfile(formData);
+            showNotification('Профиль успешно создан!', 'success');
+            closeModal();
+            resetForm(modal.element);
+            await renderProfilesList('profileList');
+        } catch (error) {
+            showNotification(error.message, 'error');
+        } finally {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        }
+    };
+    
+    createModalInstance = {
+        element: modal.element,
+        show: () => {
+            modal.element.style.display = 'block';
+            resetForm(modal.element);
+        },
+        hide: closeModal
+    };
+    
+    return createModalInstance;
+}
+
+// Рендеринг модального окна для редактирования
+export async function renderEditModal(profile) {
+    if (editModalInstance) {
+        // Обновляем данные в существующем модальном окне
+        fillFormData(editModalInstance.element, profile);
+        return editModalInstance;
+    }
+    
+    const modal = createModalElement('Редактировать профиль', profile);
+    document.body.appendChild(modal.element);
+    
+    const closeModal = () => {
+        modal.element.style.display = 'none';
+    };
+    
+    modal.close = closeModal;
+    
+    modal.element.querySelector('.close').onclick = closeModal;
+    modal.element.querySelector('#cancelBtn').onclick = closeModal;
+    
+    window.onclick = (event) => {
+        if (event.target === modal.element) {
+            closeModal();
+        }
+    };
+    
+    modal.element.querySelector('#profileForm').onsubmit = async (event) => {
+        event.preventDefault();
+        const formData = getFormData();
+        
+        const submitBtn = modal.element.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Сохранение...';
+        submitBtn.disabled = true;
+        
+        try {
+            await updateProfile(profile.id, formData);
+            showNotification('Профиль успешно обновлен!', 'success');
+            closeModal();
+            await renderProfilesList('profileList');
+        } catch (error) {
+            showNotification(error.message, 'error');
+        } finally {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        }
+    };
+    
+    editModalInstance = {
+        element: modal.element,
+        show: () => {
+            fillFormData(modal.element, profile);
+            modal.element.style.display = 'block';
+        },
+        hide: closeModal
+    };
+    
+    return editModalInstance;
+}
+
+// Создание DOM элемента модального окна
+function createModalElement(title, profile) {
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.id = 'profileModal';
     modal.innerHTML = `
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Добавить профиль</h2>
+                <h2>${title}</h2>
                 <span class="close">&times;</span>
             </div>
             <form id="profileForm">
@@ -63,84 +183,40 @@ export async function renderModal() {
                 
                 <div class="form-actions">
                     <button type="button" id="cancelBtn" class="btn-secondary">Отмена</button>
-                    <button type="submit" class="btn-primary">Создать</button>
+                    <button type="submit" class="btn-primary">${profile ? 'Сохранить' : 'Создать'}</button>
                 </div>
             </form>
         </div>
     `;
     
-    document.body.appendChild(modal);
-    
-    // Настройка обработчиков
-    const closeBtn = modal.querySelector('.close');
-    const cancelBtn = modal.querySelector('#cancelBtn');
-    const form = modal.querySelector('#profileForm');
-    
-    const closeModal = () => {
-        modal.style.display = 'none';
+    return { element: modal };
+}
+
+// Получение данных из формы
+function getFormData() {
+    return {
+        first_name: document.getElementById('first_name').value || null,
+        middle_name: document.getElementById('middle_name').value || null,
+        last_name: document.getElementById('last_name').value || null,
+        sex: document.getElementById('sex').value,
+        birth_year: parseInt(document.getElementById('birth_year').value) || null,
+        birth_month: parseInt(document.getElementById('birth_month').value) || null,
+        birth_day: parseInt(document.getElementById('birth_day').value) || null
     };
-    
-    closeBtn.onclick = closeModal;
-    cancelBtn.onclick = closeModal;
-    
-    // Закрытие при клике вне окна
-    window.onclick = (event) => {
-        if (event.target === modal) {
-            closeModal();
-        }
-    };
-    
-    // Обработка отправки формы
-    form.onsubmit = async (event) => {
-        event.preventDefault();
-        
-        const formData = {
-            first_name: document.getElementById('first_name').value || null,
-            middle_name: document.getElementById('middle_name').value || null,
-            last_name: document.getElementById('last_name').value || null,
-            sex: document.getElementById('sex').value,
-            birth_year: parseInt(document.getElementById('birth_year').value) || null,
-            birth_month: parseInt(document.getElementById('birth_month').value) || null,
-            birth_day: parseInt(document.getElementById('birth_day').value) || null
-        };
-        
-        // Валидация
-        if (!formData.first_name && !formData.last_name) {
-            showNotification('Укажите хотя бы имя или фамилию', 'error');
-            return;
-        }
-        
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = 'Создание...';
-        submitBtn.disabled = true;
-        
-        try {
-            await createProfile(formData);
-            showNotification('Профиль успешно создан!', 'success');
-            closeModal();
-            form.reset();
-            
-            // Обновляем список профилей
-            await renderProfilesList('profileList');
-        } catch (error) {
-            showNotification(error.message, 'error');
-        } finally {
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-        }
-    };
-    
-    modalInstance = {
-        element: modal,
-        show: () => {
-            modal.style.display = 'block';
-            form.reset();
-        },
-        hide: () => {
-            modal.style.display = 'none';
-        }
-    };
-    
-    return modalInstance;
+}
+
+// Заполнение формы данными профиля
+function fillFormData(modalElement, profile) {
+    modalElement.querySelector('#last_name').value = profile.last_name || '';
+    modalElement.querySelector('#first_name').value = profile.first_name || '';
+    modalElement.querySelector('#middle_name').value = profile.middle_name || '';
+    modalElement.querySelector('#sex').value = profile.sex;
+    modalElement.querySelector('#birth_year').value = profile.birth_year || '';
+    modalElement.querySelector('#birth_month').value = profile.birth_month || '';
+    modalElement.querySelector('#birth_day').value = profile.birth_day || '';
+}
+
+// Сброс формы
+function resetForm(modalElement) {
+    modalElement.querySelector('#profileForm').reset();
 }

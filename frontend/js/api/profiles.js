@@ -42,3 +42,47 @@ export async function createProfile(profileData) {
         throw error;
     }
 }
+
+
+export async function updateProfile(profileId, profileData) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/profiles/${profileId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(profileData)
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data;
+    }
+    catch (error) {
+        console.error('Ошибка обновления профиля:', error);
+        throw error;
+    }
+}
+
+export async function deleteProfile(profileId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/profiles/${profileId}`, {
+            method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+        
+        return true;
+    }
+    catch (error) {
+        console.error('Ошибка удаления профиля:', error);
+        throw error;
+    }
+}

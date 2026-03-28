@@ -1,5 +1,7 @@
-import { fetchProfiles } from "../api/profiles.js";   
+import { fetchProfiles, deleteProfile } from "../api/profiles.js";
 import { formatFullName, formatBirthDate, formatGender } from "../utils/formatters.js";
+import { showNotification } from "./notifications.js";
+import { renderEditModal } from "./modal.js";
 
 export async function renderProfilesList(containerId) {
     const container = document.getElementById(containerId);
@@ -21,6 +23,14 @@ export async function renderProfilesList(containerId) {
 
         const profilesHtml = profiles.map(profile => `
             <div class="profile-card" data-profile-id="${profile.id}">
+                <div class="profile-card__actions">
+                    <button class="btn-icon btn-edit" data-id="${profile.id}" title="Редактировать">
+                        ✏️
+                    </button>
+                    <button class="btn-icon btn-delete" data-id="${profile.id}" title="Удалить">
+                        🗑️
+                    </button>
+                </div>
                 <div class="profile-card__content">
                     <h3 class="profile-card__name">${escapeHtml(formatFullName(profile))}</h3>
                     <div class="profile-card__info">
@@ -42,6 +52,39 @@ export async function renderProfilesList(containerId) {
                 ${profilesHtml}
             </div>
         `;
+        
+        // Добавляем обработчики для кнопок редактирования
+        const editButtons = document.querySelectorAll('.btn-edit');
+        editButtons.forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const profileId = parseInt(btn.dataset.id);
+                const profile = profiles.find(p => p.id === profileId);
+                if (profile) {
+                    const modal = await renderEditModal(profile);
+                    modal.show();
+                }
+            });
+        });
+        
+        // Добавляем обработчики для кнопок удаления
+        const deleteButtons = document.querySelectorAll('.btn-delete');
+        deleteButtons.forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const profileId = parseInt(btn.dataset.id);
+                if (confirm('Вы уверены, что хотите удалить этот профиль?')) {
+                    try {
+                        await deleteProfile(profileId);
+                        showNotification('Профиль успешно удален!', 'success');
+                        await renderProfilesList(containerId);
+                    } catch (error) {
+                        showNotification(error.message, 'error');
+                    }
+                }
+            });
+        });
+        
     } catch (error) {
         console.error('Error rendering profiles:', error);
         container.innerHTML = `
