@@ -12,26 +12,14 @@
 <body>
     <div class="container">
         <h1>GraphSocial</h1>
-        
-        <div class="actions">
-            <button class="btn-primary" onclick="location.reload()">
-                Обновить список
-            </button>
-        </div>
-        
+        <!-- Список профилей: сейчас сетка карточек -->
         <div id="profileList"></div>
-        
-        <div id="healthResult" style="margin-top: 20px;"></div>
+
     </div>
 
+    <!-- Скрипты -->
     <script type="module">
         import { renderProfilesList } from './js/components/profile-list.js';
-        import { checkHealth } from './js/core/healthcheck.js';
-        
-        window.loadProfiles = () => renderProfilesList('profileList');
-        window.checkHealth = checkHealth;
-        
-        // Загружаем список при старте
         renderProfilesList('profileList');
     </script>
 </body>
