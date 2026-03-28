@@ -1,5 +1,3 @@
-// frontend/js/components/profile-list.js
-
 import { fetchProfiles } from "../api/profiles.js";   
 import { formatFullName, formatBirthDate, formatGender } from "../utils/formatters.js";
 
@@ -16,12 +14,11 @@ export async function renderProfilesList(containerId) {
 
         const profiles = await fetchProfiles();
 
-        if (!profiles) {
+        if (!profiles || profiles.length === 0) {
             container.innerHTML = '<div class="empty-state">Нет загруженных профилей</div>';
             return;
         }
 
-        // Рендерим карточки
         const profilesHtml = profiles.map(profile => `
             <div class="profile-card" data-profile-id="${profile.id}">
                 <div class="profile-card__content">
@@ -45,18 +42,15 @@ export async function renderProfilesList(containerId) {
                 ${profilesHtml}
             </div>
         `;
-    }
-
-    catch (error) {
+    } catch (error) {
         console.error('Error rendering profiles:', error);
         container.innerHTML = `
-        <div class="error-state">
-            Ошибка загрузки профилей: ${error.message}
-            <button onclick="location.reload()">Попробовать снова</button>
-        </div>
+            <div class="error-state">
+                Ошибка загрузки профилей: ${error.message}
+                <button onclick="location.reload()">Попробовать снова</button>
+            </div>
         `;
     }
-
 }
 
 function escapeHtml(str) {

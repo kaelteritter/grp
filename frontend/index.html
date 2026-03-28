@@ -7,20 +7,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GraphSocial</title>
     <link href="css/core/base.css" type="text/css" rel="stylesheet">
-    <link href="css/components/profile-card.css" type="text/css" rel="stylesheet">
+    <link href="css/components/profile_card.css" type="text/css" rel="stylesheet">
+    <link href="css/components/modal.css" type="text/css" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <h1>GraphSocial</h1>
-        <!-- Список профилей: сейчас сетка карточек -->
-        <div id="profileList"></div>
-
+        <div id="app"></div>
     </div>
-
-    <!-- Скрипты -->
-    <script type="module">
-        import { renderProfilesList } from './js/components/profile-list.js';
-        renderProfilesList('profileList');
-    </script>
+    <!-- Подключение скриптов -->
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>
