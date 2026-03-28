@@ -4,6 +4,7 @@ import { showNotification } from './notifications.js';
 
 let createModalInstance = null;
 let editModalInstance = null;
+let currentEditProfileId = null;
 
 // Рендеринг модального окна для создания
 export async function renderModal() {
@@ -11,11 +12,13 @@ export async function renderModal() {
         return createModalInstance;
     }
     
-    const modal = createModalElement('Добавить профиль', null);
+    const modal = createModalElement('Добавить профиль', 'create');
     document.body.appendChild(modal.element);
     
     const closeModal = () => {
         modal.element.style.display = 'none';
+        resetForm(modal.element);
+        currentEditProfileId = null;
     };
     
     modal.close = closeModal;
@@ -23,15 +26,16 @@ export async function renderModal() {
     modal.element.querySelector('.close').onclick = closeModal;
     modal.element.querySelector('#cancelBtn').onclick = closeModal;
     
-    window.onclick = (event) => {
+    // Закрытие при клике вне окна
+    modal.element.addEventListener('click', (event) => {
         if (event.target === modal.element) {
             closeModal();
         }
-    };
+    });
     
     modal.element.querySelector('#profileForm').onsubmit = async (event) => {
         event.preventDefault();
-        const formData = getFormData();
+        const formData = getFormData(modal.element);
         
         if (!formData.first_name && !formData.last_name) {
             showNotification('Укажите хотя бы имя или фамилию', 'error');
@@ -47,7 +51,6 @@ export async function renderModal() {
             await createProfile(formData);
             showNotification('Профиль успешно создан!', 'success');
             closeModal();
-            resetForm(modal.element);
             await renderProfilesList('profileList');
         } catch (error) {
             showNotification(error.message, 'error');
@@ -60,8 +63,8 @@ export async function renderModal() {
     createModalInstance = {
         element: modal.element,
         show: () => {
-            modal.element.style.display = 'block';
             resetForm(modal.element);
+            modal.element.style.display = 'block';
         },
         hide: closeModal
     };
@@ -71,66 +74,89 @@ export async function renderModal() {
 
 // Рендеринг модального окна для редактирования
 export async function renderEditModal(profile) {
-    if (editModalInstance) {
-        // Обновляем данные в существующем модальном окне
-        fillFormData(editModalInstance.element, profile);
-        return editModalInstance;
+    // Проверяем, что profile передан корректно
+    if (!profile || !profile.id) {
+        console.error('Invalid profile data for edit modal:', profile);
+        showNotification('Ошибка: данные профиля не найдены', 'error');
+        return null;
     }
     
-    const modal = createModalElement('Редактировать профиль', profile);
-    document.body.appendChild(modal.element);
-    
-    const closeModal = () => {
-        modal.element.style.display = 'none';
-    };
-    
-    modal.close = closeModal;
-    
-    modal.element.querySelector('.close').onclick = closeModal;
-    modal.element.querySelector('#cancelBtn').onclick = closeModal;
-    
-    window.onclick = (event) => {
-        if (event.target === modal.element) {
-            closeModal();
-        }
-    };
-    
-    modal.element.querySelector('#profileForm').onsubmit = async (event) => {
-        event.preventDefault();
-        const formData = getFormData();
+    // Если модальное окно еще не создано, создаем его
+    if (!editModalInstance) {
+        const modal = createModalElement('Редактировать профиль', 'edit');
+        document.body.appendChild(modal.element);
         
-        const submitBtn = modal.element.querySelector('button[type="submit"]');
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = 'Сохранение...';
-        submitBtn.disabled = true;
+        const closeModal = () => {
+            modal.element.style.display = 'none';
+            resetForm(modal.element);
+            currentEditProfileId = null;
+        };
         
-        try {
-            await updateProfile(profile.id, formData);
-            showNotification('Профиль успешно обновлен!', 'success');
-            closeModal();
-            await renderProfilesList('profileList');
-        } catch (error) {
-            showNotification(error.message, 'error');
-        } finally {
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-        }
-    };
+        modal.close = closeModal;
+        
+        modal.element.querySelector('.close').onclick = closeModal;
+        modal.element.querySelector('#cancelBtn').onclick = closeModal;
+        
+        // Закрытие при клике вне окна
+        modal.element.addEventListener('click', (event) => {
+            if (event.target === modal.element) {
+                closeModal();
+            }
+        });
+        
+        modal.element.querySelector('#profileForm').onsubmit = async (event) => {
+            event.preventDefault();
+            
+            if (!currentEditProfileId) {
+                showNotification('Ошибка: профиль не выбран', 'error');
+                return;
+            }
+            
+            const formData = getFormData(modal.element);
+            
+            const submitBtn = modal.element.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Сохранение...';
+            submitBtn.disabled = true;
+            
+            try {
+                await updateProfile(currentEditProfileId, formData);
+                showNotification('Профиль успешно обновлен!', 'success');
+                closeModal();
+                await renderProfilesList('profileList');
+            } catch (error) {
+                showNotification(error.message, 'error');
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        };
+        
+        editModalInstance = {
+            element: modal.element,
+            show: (profileData) => {
+                // Проверяем, что profileData передан
+                if (!profileData) {
+                    console.error('No profile data provided to show edit modal');
+                    return;
+                }
+                // Заполняем форму данными профиля
+                fillFormData(modal.element, profileData);
+                currentEditProfileId = profileData.id;
+                modal.element.style.display = 'block';
+            },
+            hide: closeModal
+        };
+    }
     
-    editModalInstance = {
-        element: modal.element,
-        show: () => {
-            fillFormData(modal.element, profile);
-            modal.element.style.display = 'block';
-        },
-        hide: closeModal
-    };
+    // Показываем модальное окно с данными текущего профиля
+    editModalInstance.show(profile);
     
     return editModalInstance;
 }
 
 // Создание DOM элемента модального окна
-function createModalElement(title, profile) {
+function createModalElement(title, mode) {
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.id = 'profileModal';
@@ -183,7 +209,7 @@ function createModalElement(title, profile) {
                 
                 <div class="form-actions">
                     <button type="button" id="cancelBtn" class="btn-secondary">Отмена</button>
-                    <button type="submit" class="btn-primary">${profile ? 'Сохранить' : 'Создать'}</button>
+                    <button type="submit" class="btn-primary">${mode === 'create' ? 'Создать' : 'Сохранить'}</button>
                 </div>
             </form>
         </div>
@@ -193,30 +219,53 @@ function createModalElement(title, profile) {
 }
 
 // Получение данных из формы
-function getFormData() {
+function getFormData(modalElement) {
     return {
-        first_name: document.getElementById('first_name').value || null,
-        middle_name: document.getElementById('middle_name').value || null,
-        last_name: document.getElementById('last_name').value || null,
-        sex: document.getElementById('sex').value,
-        birth_year: parseInt(document.getElementById('birth_year').value) || null,
-        birth_month: parseInt(document.getElementById('birth_month').value) || null,
-        birth_day: parseInt(document.getElementById('birth_day').value) || null
+        first_name: modalElement.querySelector('#first_name').value || null,
+        middle_name: modalElement.querySelector('#middle_name').value || null,
+        last_name: modalElement.querySelector('#last_name').value || null,
+        sex: modalElement.querySelector('#sex').value,
+        birth_year: parseInt(modalElement.querySelector('#birth_year').value) || null,
+        birth_month: parseInt(modalElement.querySelector('#birth_month').value) || null,
+        birth_day: parseInt(modalElement.querySelector('#birth_day').value) || null
     };
 }
 
 // Заполнение формы данными профиля
 function fillFormData(modalElement, profile) {
-    modalElement.querySelector('#last_name').value = profile.last_name || '';
-    modalElement.querySelector('#first_name').value = profile.first_name || '';
-    modalElement.querySelector('#middle_name').value = profile.middle_name || '';
-    modalElement.querySelector('#sex').value = profile.sex;
-    modalElement.querySelector('#birth_year').value = profile.birth_year || '';
-    modalElement.querySelector('#birth_month').value = profile.birth_month || '';
-    modalElement.querySelector('#birth_day').value = profile.birth_day || '';
+    // Проверяем, что modalElement и profile существуют
+    if (!modalElement || !profile) {
+        console.error('Cannot fill form: missing modalElement or profile');
+        return;
+    }
+    
+    const lastNameInput = modalElement.querySelector('#last_name');
+    const firstNameInput = modalElement.querySelector('#first_name');
+    const middleNameInput = modalElement.querySelector('#middle_name');
+    const sexSelect = modalElement.querySelector('#sex');
+    const birthYearInput = modalElement.querySelector('#birth_year');
+    const birthMonthInput = modalElement.querySelector('#birth_month');
+    const birthDayInput = modalElement.querySelector('#birth_day');
+    
+    // Заполняем поля с проверкой на существование
+    if (lastNameInput) lastNameInput.value = profile.last_name || '';
+    if (firstNameInput) firstNameInput.value = profile.first_name || '';
+    if (middleNameInput) middleNameInput.value = profile.middle_name || '';
+    if (sexSelect) sexSelect.value = profile.sex || 'male';
+    if (birthYearInput) birthYearInput.value = profile.birth_year || '';
+    if (birthMonthInput) birthMonthInput.value = profile.birth_month || '';
+    if (birthDayInput) birthDayInput.value = profile.birth_day || '';
 }
 
 // Сброс формы
 function resetForm(modalElement) {
-    modalElement.querySelector('#profileForm').reset();
+    if (!modalElement) return;
+    
+    const form = modalElement.querySelector('#profileForm');
+    if (form) form.reset();
+    
+    const sexSelect = modalElement.querySelector('#sex');
+    if (sexSelect) {
+        sexSelect.value = 'male';
+    }
 }
