@@ -1,6 +1,6 @@
 // frontend/js/core/healthcheck.js
 
-async function checkHealth() {
+export async function checkHealth() {
     const resultDiv = document.getElementById('healthResult');
     resultDiv.innerHTML = 'Проверка...'; 
     try {

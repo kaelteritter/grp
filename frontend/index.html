@@ -2,20 +2,37 @@
 
 <!DOCTYPE html>
 <html lang="ru">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link href="css/core/base.css" type="text/css" rel="stylesheet">
-        <title>GraphSocial</title>
-    </head>
-    <body>
-
-        <div class="container">
-            <h1>GraphSocial</h1>
-            <button onclick="checkHealth()">Проверить статус сервера</button>
-            <div id="healthResult"></div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GraphSocial</title>
+    <link href="css/core/base.css" type="text/css" rel="stylesheet">
+    <link href="css/components/profile-card.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>GraphSocial</h1>
+        
+        <div class="actions">
+            <button class="btn-primary" onclick="location.reload()">
+                Обновить список
+            </button>
         </div>
+        
+        <div id="profileList"></div>
+        
+        <div id="healthResult" style="margin-top: 20px;"></div>
+    </div>
 
-        <script src="js/core/healthcheck.js"></script>
-    </body>
+    <script type="module">
+        import { renderProfilesList } from './js/components/profile-list.js';
+        import { checkHealth } from './js/core/healthcheck.js';
+        
+        window.loadProfiles = () => renderProfilesList('profileList');
+        window.checkHealth = checkHealth;
+        
+        // Загружаем список при старте
+        renderProfilesList('profileList');
+    </script>
+</body>
 </html>

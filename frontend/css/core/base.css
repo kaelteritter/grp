@@ -39,3 +39,25 @@ button:hover {
     background: #f8f9fa;
     font-family: monospace;
 }
+
+
+.actions {
+    margin: 20px 0;
+    display: flex;
+    gap: 12px;
+}
+
+.btn-primary {
+    background: #4c4c4c;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background: #656566;
+}
