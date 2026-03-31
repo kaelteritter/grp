@@ -3,7 +3,15 @@ from .profile import (
     update_profile,
     read_profile,
     read_profiles,
-    delete_profile
+    delete_profile,
+)
+
+from .country import (
+    create_country,
+    read_countries,
+    read_country,
+    update_country,
+    delete_country,
 )
 
 __all__ = [
@@ -12,4 +20,10 @@ __all__ = [
     'read_profile',
     'read_profiles',
     'delete_profile',
+
+    'create_country',
+    'read_countries',
+    'read_country',
+    'update_country',
+    'delete_country',
 ]

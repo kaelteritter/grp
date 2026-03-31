@@ -71,4 +71,7 @@ async def delete_profile(
     Удалить профиль
     """
     await services.delete_profile(db, profile_id)
-    return None
+    return {
+        "id": profile_id,
+        "status": "deleted",
+    }

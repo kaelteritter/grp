@@ -6,7 +6,7 @@ from sqlalchemy import text
 from app.core.config import settings
 from app.core.database import SessionDep
 
-from app.api.v1.endpoints import profile_router
+from app.api.v1.endpoints import profile_router, country_router
 
 app = FastAPI(title=settings.APP_NAME, debug=settings.DEBUG)
 
@@ -19,6 +19,7 @@ app.add_middleware(
 )
 
 app.include_router(profile_router)
+app.include_router(country_router)
 
 @app.get("/health")
 async def health_check():
