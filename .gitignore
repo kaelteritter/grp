@@ -31,3 +31,5 @@ pytest.ini
 
 .prompt
 .prompt.fast
+
+uploads/

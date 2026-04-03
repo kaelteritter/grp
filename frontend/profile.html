@@ -10,7 +10,10 @@
     <link rel="stylesheet" href="/css/components/form.css">
     <link rel="stylesheet" href="/css/components/loading.css">
     <link rel="stylesheet" href="/css/pages/profile.css">
+    <link rel="stylesheet" href="/css/components/slideshow.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet">
+    
 </head>
 <body class="profile-page">
     <div class="app">
@@ -24,68 +27,48 @@
                 </div>
             </div>
         </header>
+        <button id="addPhotoBtn" class="add-photo-btn" title="Добавить фото">+</button>
 
         <main>
-            <div class="profile-header">
-                <div id="profileAvatar" class="profile-avatar-large"></div>
-                <h1 id="profileName" class="profile-name-large"></h1>
-                <div class="profile-stats">
-                    <div class="stat">
-                        <div id="photosCount" class="stat-value">0</div>
-                        <div class="stat-label">фото</div>
+            <div class="profile-container">
+                <div class="profile-header-compact">
+                    <div class="profile-avatar-large" data-avatar-click>
+                        <div id="profileAvatar"></div>
                     </div>
-                    <div class="stat">
-                        <div id="linksCount" class="stat-value">0</div>
-                        <div class="stat-label">ссылки</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="profile-content">
-                <div class="info-section">
-                    <h3>Основная информация</h3>
-                    <div class="info-row">
-                        <div class="info-label">ФИО</div>
-                        <div id="profileFullName" class="info-value"></div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Пол</div>
-                        <div id="profileGender" class="info-value"></div>
-                    </div>
-                    <div id="birthDateRow" class="info-row">
-                        <div class="info-label">Дата рождения</div>
-                        <div id="profileBirthDate" class="info-value"></div>
+                    <div class="profile-info-compact">
+                        <h1 id="profileName" class="profile-name-large"></h1>
+                        <div class="profile-details-compact">
+                            <span id="profileGender"></span>
+                            <span id="profileBirthDate"></span>
+                            <span id="profileLocation"></span>
+                        </div>
+                        <div class="profile-stats">
+                            <div class="stat">
+                                <div id="photosCount" class="stat-value">0</div>
+                                <div class="stat-label">фото</div>
+                            </div>
+                            <div class="stat">
+                                <div id="linksCount" class="stat-value">0</div>
+                                <div class="stat-label">ссылки</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div id="locationSection" class="info-section">
-                    <h3>Местоположение</h3>
-                    <div id="profileLocation" class="info-row">
-                        <div class="info-label">Локация</div>
-                        <div class="info-value"></div>
+                <div class="profile-sections">
+                    <div class="info-section">
+                        <h3><i class="fas fa-link"></i> Социальные сети</h3>
+                        <div id="socialLinksList" class="social-links-section"></div>
                     </div>
-                    <div id="profileRegion" class="info-row">
-                        <div class="info-label">Регион</div>
-                        <div class="info-value"></div>
-                    </div>
-                    <div id="profileCountry" class="info-row">
-                        <div class="info-label">Страна</div>
-                        <div class="info-value"></div>
-                    </div>
-                </div>
 
-                <div class="info-section">
-                    <h3>Социальные сети</h3>
-                    <div id="socialLinksList" class="social-links-section"></div>
-                </div>
-
-                <div class="info-section">
-                    <h3>Фотографии</h3>
-                    <div id="photosGrid" class="photos-grid"></div>
+                    <div class="info-section">
+                        <h3><i class="fas fa-images"></i> Фотографии</h3>
+                        <div id="photosGrid" class="photos-grid"></div>
+                    </div>
                 </div>
             </div>
         </main>
-
+        
         <!-- Profile Modal -->
         <div id="profileModal" class="modal hidden">
             <div class="modal-content">
@@ -141,6 +124,42 @@
                         </div>
                     </form>
                 </div>
+            </div>
+        </div>
+
+        <!-- Photo Upload Modal -->
+        <div id="photoUploadModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Добавить фотографии</h2>
+                    <button class="close-btn" id="photoUploadClose">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="photoUploadForm">
+                        <div class="form-group">
+                            <label for="photoFiles">Выберите фотографии</label>
+                            <input type="file" id="photoFiles" multiple accept="image/*" required>
+                            <small style="color: #8e8e8e; display: block; margin-top: 5px;">Можно выбрать несколько файлов</small>
+                        </div>
+                        <div id="photoPreview" class="photo-preview-grid"></div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" id="photoUploadCancel">Отмена</button>
+                            <button type="button" class="btn btn-primary" id="photoUploadSubmit">Загрузить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slideshow Modal -->
+        <div id="slideshowModal" class="slideshow-modal hidden">
+            <div class="slideshow-container">
+                <button class="slideshow-close" id="slideshowClose">&times;</button>
+                <button class="slideshow-nav slideshow-prev" id="slideshowPrev">❮</button>
+                <button class="slideshow-nav slideshow-next" id="slideshowNext">❯</button>
+                <div class="slideshow-images" id="slideshowImages"></div>
+                <div class="slideshow-sidebar" id="slideshowAuthor"></div>
+                <div class="slideshow-counter" id="slideshowCounter">1 / 1</div>
             </div>
         </div>
     </div>

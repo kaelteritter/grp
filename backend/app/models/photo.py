@@ -53,3 +53,5 @@ class Photo(Base):
         if len(url) > 500:
             raise ValueError("URL не может быть длиннее 500 символов")
         return url.strip()
+    
+    

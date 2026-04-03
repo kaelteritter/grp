@@ -1,4 +1,7 @@
-from fastapi import APIRouter, HTTPException, Query, status
+import os
+import uuid
+
+from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile, status
 from typing import List, Optional
 
 from app.core.database import SessionDep
@@ -88,3 +91,47 @@ async def set_profile_avatar(
     """
     photo = await services.set_avatar(db, profile_id, photo_id)
     return enrich_photo(photo)
+
+
+
+@router.post("/multiple/", response_model=List[PhotoReadSchema], status_code=status.HTTP_201_CREATED)
+async def upload_multiple_photos(
+    db: SessionDep,
+    files: List[UploadFile] = File(...),
+    profile_id: int = Form(...)
+):
+    """
+    Загрузить несколько фотографий
+    """
+    uploaded_photos = []
+    
+    # Create upload directory if not exists
+    UPLOAD_DIR = "uploads/photos"
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    
+    for file in files:
+        # Generate unique filename
+        file_extension = os.path.splitext(file.filename)[1] # type: ignore
+        unique_filename = f"{uuid.uuid4()}{file_extension}"
+        file_path = os.path.join(UPLOAD_DIR, unique_filename)
+        
+        # Save file
+        content = await file.read()
+        with open(file_path, "wb") as f:
+            f.write(content)
+        
+        # Create URL for the file
+        file_url = f"/uploads/photos/{unique_filename}"
+        
+        # Create photo in database
+        photo_in = PhotoCreateSchema(
+            url=file_url,
+            profile_id=profile_id,
+            title=file.filename,
+            is_avatar=False
+        )
+        
+        photo = await services.create_photo(db, photo_in)
+        uploaded_photos.append(photo)
+    
+    return uploaded_photos

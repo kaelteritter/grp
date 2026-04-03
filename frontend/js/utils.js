@@ -8,14 +8,22 @@ const Utils = {
     },
 
     formatBirthDate(profile) {
-        const parts = [];
-        if (profile.birth_day) parts.push(profile.birth_day);
-        if (profile.birth_month) parts.push(profile.birth_month);
-        if (profile.birth_year) parts.push(profile.birth_year);
+        const year = profile.birth_year;
+        const month = profile.birth_month;
+        const day = profile.birth_day;
         
-        if (parts.length === 3) return `${parts[0]}.${parts[1]}.${parts[2]}`;
-        if (parts.length === 2) return `${parts[0]}.${parts[1]}`;
-        if (parts.length === 1) return `${parts[0]}`;
+        if (year && month && day) {
+            return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        }
+        if (year && month) {
+            return `${year}-${String(month).padStart(2, '0')}`;
+        }
+        if (year) {
+            return `${year}`;
+        }
+        if (month && day) {
+            return `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        }
         return '';
     },
 
@@ -37,7 +45,7 @@ const Utils = {
     },
 
     getGenderIcon(sex) {
-        return sex === 'male' ? '👨' : '👩';
+        return sex === 'male' ? '<i class="fas fa-mars"></i>' : '<i class="fas fa-venus"></i>';
     },
 
     getGenderText(sex) {

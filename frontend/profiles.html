@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="/css/components/form.css">
     <link rel="stylesheet" href="/css/components/loading.css">
     <link rel="stylesheet" href="/css/pages/home.css">
+    <link rel="stylesheet" href="/css/components/slideshow.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet">
 </head>
 <body class="home-page">
@@ -18,12 +20,12 @@
         <header class="header">
             <div class="container">
                 <h1 class="logo">GraphSocial</h1>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button id="addCountryBtn" class="btn btn-secondary">🌍 Создать страну</button>
-                    <button id="addRegionBtn" class="btn btn-secondary">🏞️ Создать регион</button>
-                    <button id="addLocationBtn" class="btn btn-secondary">📍 Создать локацию</button>
-                    <button id="addPlatformBtn" class="btn btn-secondary">🔗 Создать платформу</button>
-                    <button id="addProfileBtn" class="btn btn-primary">+ Добавить профиль</button>
+                <div class="header-actions">
+                    <button id="addCountryBtn" class="btn-minimal">Страна</button>
+                    <button id="addRegionBtn" class="btn-minimal">Регион</button>
+                    <button id="addLocationBtn" class="btn-minimal">Локация</button>
+                    <button id="addPlatformBtn" class="btn-minimal">Платформа</button>
+                    <button id="addProfileBtn" class="btn-minimal primary">Профиль</button>
                 </div>
             </div>
         </header>
@@ -94,9 +96,11 @@
                             <button type="button" class="btn btn-secondary" id="cancelBtn">Отмена</button>
                             <button type="submit" class="btn btn-primary">Сохранить</button>
                         </div>
+                        <div id="profilePhotoUpload"></div>
                     </form>
                 </div>
             </div>
+            
         </div>
 
         <!-- Location Modal -->
@@ -211,6 +215,18 @@
                         </div>
                     </form>
                 </div>
+            </div>
+        </div>
+        
+        <!-- Slideshow Modal -->
+        <div id="slideshowModal" class="slideshow-modal hidden">
+            <div class="slideshow-container">
+                <button class="slideshow-close" id="slideshowClose">&times;</button>
+                <button class="slideshow-nav slideshow-prev" id="slideshowPrev">❮</button>
+                <button class="slideshow-nav slideshow-next" id="slideshowNext">❯</button>
+                <div class="slideshow-images" id="slideshowImages"></div>
+                <div class="slideshow-sidebar" id="slideshowAuthor"></div>
+                <div class="slideshow-counter" id="slideshowCounter">1 / 1</div>
             </div>
         </div>
 

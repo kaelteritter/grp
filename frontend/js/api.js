@@ -70,6 +70,7 @@ class API {
     async getLinks(profileId) {
         return this.request(`/links/?profile_id=${profileId}`);
     }
+    
     async createLink(linkData) {
         return this.request('/links/', {
             method: 'POST',
@@ -80,6 +81,43 @@ class API {
     async getPlatforms() {
         return this.request('/platforms/');
     }
+
+    async uploadPhotos(profileId, files) {
+        const url = `${this.baseURL}/photos/multiple/`;
+        const formData = new FormData();
+        
+        for (let i = 0; i < files.length; i++) {
+            formData.append('files', files[i]);
+        }
+        formData.append('profile_id', profileId);
+        
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData,
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Upload failed');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Upload Error:', error);
+            throw error;
+        }
+    }
+    async setAvatar(profileId, photoId) {
+        return this.request(`/photos/profile/${profileId}/avatar/${photoId}`, {
+            method: 'PATCH',
+        });
+    }
+
+    async deletePhoto(photoId) {
+        return this.request(`/photos/${photoId}`, {
+            method: 'DELETE',
+        });
+}
 }
 
 

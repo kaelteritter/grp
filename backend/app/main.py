@@ -15,6 +15,9 @@ from app.api.v1.endpoints import profile, country, region, location, platform, l
 # Определяем пути
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 FRONTEND_DIR = BASE_DIR / "frontend"
+UPLOAD_DIR = BASE_DIR / "uploads"
+UPLOAD_DIR.mkdir(exist_ok=True)
+
 
 app = FastAPI(title=settings.APP_NAME, debug=settings.DEBUG)
 
@@ -49,10 +52,13 @@ async def db_health_check(db: AsyncSession = Depends(get_db)):
     except Exception as e:
         return {"status": "error", "database": "disconnected", "error": str(e)}
 
+
+
+
 # SPA роутинг
 if FRONTEND_DIR.exists():
     # Монтируем статические файлы
-    app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
+    app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
     
     # API для получения статики
     @app.get("/css/{file_path:path}")

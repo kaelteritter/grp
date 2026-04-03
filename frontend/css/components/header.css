@@ -12,55 +12,63 @@
     justify-content: space-between;
     align-items: center;
     padding: 12px 20px;
+    gap: 16px;
+    flex-wrap: wrap;
 }
 
 .logo {
-    font-family: 'Grand Hotel', cursive;
-    font-size: 28px;
-    font-weight: 400;
-    text-decoration: none;
+    font-size: 24px;
+    font-weight: 600;
     background: linear-gradient(135deg, #f09433 0%, #d62976 50%, #962fbf 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
-.btn {
-    padding: 8px 16px;
-    border: none;
+.header-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-minimal {
+    background: transparent;
+    border: 1px solid #363636;
+    color: #e0e0e0;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 12px;
     border-radius: 8px;
-    font-size: 14px;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-weight: 600;
+    white-space: nowrap;
 }
 
-.btn-primary {
-    background: #0095f6;
-    color: white;
-}
-
-.btn-primary:hover {
-    background: #0081d6;
-}
-
-.btn-secondary {
-    background: #363636;
-    color: white;
-}
-
-.btn-secondary:hover {
-    background: #404040;
-}
-
-.back-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: transparent;
-    color: white;
-}
-
-.back-btn:hover {
+.btn-minimal:hover {
     background: rgba(255, 255, 255, 0.1);
+    border-color: #0095f6;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.btn-minimal.primary {
+    background: #0095f6;
+    border-color: #0095f6;
+    color: white;
+}
+
+.btn-minimal.primary:hover {
+    background: #0081d6;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+    .header-actions {
+        gap: 6px;
+    }
+    
+    .btn-minimal {
+        font-size: 11px;
+        padding: 4px 8px;
+    }
 }
