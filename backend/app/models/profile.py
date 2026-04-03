@@ -1,3 +1,5 @@
+# backend/app/models/profile.py
+
 from datetime import datetime
 import enum
 
@@ -47,6 +49,13 @@ class Profile(Base):
     current_location = relationship(
         "Location",
         back_populates="profiles",
+    )
+
+    links = relationship(
+        "Link",
+        back_populates="profile",
+        cascade="all, delete-orphan",
+        lazy="selectin"
     )
 
     created_at: Mapped[datetime] = mapped_column(

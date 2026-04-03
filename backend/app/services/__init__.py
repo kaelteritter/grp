@@ -38,6 +38,14 @@ from app.services.platform import (
     delete_platform
 )
 
+from app.services.link import (
+    create_link,
+    read_link,
+    read_links,
+    update_link,
+    delete_link
+)
+
 __all__ = [
     # Profile
     "create_profile",
@@ -69,4 +77,10 @@ __all__ = [
     "read_platforms",
     "update_platform",
     "delete_platform",
+    # Link
+    "create_link",
+    "read_link",
+    "read_links",
+    "update_link",
+    "delete_link"  
 ]

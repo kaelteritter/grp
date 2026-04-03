@@ -1,6 +1,6 @@
 # backend/app/models/platform.py
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
@@ -22,4 +22,11 @@ class Platform(Base):
     base_url: Mapped[str] = mapped_column(
         nullable=False,
         unique=True,
+    )
+
+    links = relationship(
+        "Link",
+        back_populates="platform",
+        cascade="all, delete-orphan",
+        lazy="selectin"
     )
