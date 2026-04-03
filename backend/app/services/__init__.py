@@ -30,6 +30,14 @@ from app.services.location import (
     delete_location
 )
 
+from app.services.platform import (
+    create_platform,
+    read_platform,
+    read_platforms,
+    update_platform,
+    delete_platform
+)
+
 __all__ = [
     # Profile
     "create_profile",
@@ -55,4 +63,10 @@ __all__ = [
     "read_locations",
     "update_location",
     "delete_location",
+    # Platform
+    "create_platform",
+    "read_platform",
+    "read_platforms",
+    "update_platform",
+    "delete_platform",
 ]
