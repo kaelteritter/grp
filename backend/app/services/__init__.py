@@ -1,15 +1,86 @@
-from .profile import (
+from app.services.profile import (
     create_profile,
-    update_profile,
     read_profile,
     read_profiles,
+    update_profile,
     delete_profile
 )
 
+from app.services.country import (
+    create_country,
+    read_country,
+    read_countries,
+    update_country,
+    delete_country
+)
+
+from app.services.region import (
+    create_region,
+    read_region,
+    read_regions,
+    update_region,
+    delete_region
+)
+
+from app.services.location import (
+    create_location,
+    read_location,
+    read_locations,
+    update_location,
+    delete_location
+)
+
+from app.services.platform import (
+    create_platform,
+    read_platform,
+    read_platforms,
+    update_platform,
+    delete_platform
+)
+
+from app.services.link import (
+    create_link,
+    read_link,
+    read_links,
+    update_link,
+    delete_link
+)
+
 __all__ = [
-    'create_profile',
-    'update_profile',
-    'read_profile',
-    'read_profiles',
-    'delete_profile',
+    # Profile
+    "create_profile",
+    "read_profile",
+    "read_profiles",
+    "update_profile",
+    "delete_profile",
+    # Country
+    "create_country",
+    "read_country",
+    "read_countries",
+    "update_country",
+    "delete_country",
+    # Region
+    "create_region",
+    "read_region",
+    "read_regions",
+    "update_region",
+    "delete_region",
+    # Location
+    "create_location",
+    "read_location",
+    "read_locations",
+    "update_location",
+    "delete_location",
+    # Platform
+    "create_platform",
+    "read_platform",
+    "read_platforms",
+    "update_platform",
+    "delete_platform",
+    # Link
+    "create_link",
+    "read_link",
+    "read_links",
+    "update_link",
+    "delete_link"  
 ]

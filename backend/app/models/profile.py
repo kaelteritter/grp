@@ -1,8 +1,10 @@
+# backend/app/models/profile.py
+
 from datetime import datetime
 import enum
 
-from sqlalchemy import CheckConstraint, DateTime, Enum, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import CheckConstraint, DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
@@ -42,6 +44,19 @@ class Profile(Base):
     birth_year: Mapped[int] = mapped_column(Integer, nullable=True)
     birth_month: Mapped[int] = mapped_column(Integer, nullable=True)
     birth_day: Mapped[int] = mapped_column(Integer, nullable=True)
+
+    current_location_id: Mapped[int] = mapped_column(ForeignKey("locations.id"), nullable=True)
+    current_location = relationship(
+        "Location",
+        back_populates="profiles",
+    )
+
+    links = relationship(
+        "Link",
+        back_populates="profile",
+        cascade="all, delete-orphan",
+        lazy="selectin"
+    )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
@@ -97,4 +112,5 @@ class Profile(Base):
             """,
             name="check_valid_date"
         ),
+        {"extend_existing": True},
     )

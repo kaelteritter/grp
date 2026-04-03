@@ -27,3 +27,7 @@ alembic/versions/*.pyc
 !alembic/versions/.gitignore
 
 pytest.ini
+
+
+.prompt
+.prompt.fast

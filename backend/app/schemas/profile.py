@@ -1,9 +1,12 @@
 # backend/app/schemas/profile.py
 
+from typing import Optional, List, TYPE_CHECKING
 from enum import Enum
 from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
-from typing import Optional
+
+from app.schemas.location import LocationReadSchema
+from app.schemas.link import LinkReadSchema
 
 
 class Gender(str, Enum):
@@ -19,6 +22,7 @@ class ProfileBaseSchema(BaseModel):
     birth_year: Optional[int] = Field(None, ge=1900, le=datetime.now().year)
     birth_month: Optional[int] = Field(None, ge=1, le=12)
     birth_day: Optional[int] = Field(None, ge=1, le=31)
+    current_location_id: Optional[int] = Field(None, ge=1)
 
     @field_validator('birth_year')
     @classmethod
@@ -33,23 +37,19 @@ class ProfileBaseSchema(BaseModel):
     @classmethod
     def validate_complete_date(cls, v, info):
         """Проверка корректности полной даты"""
-        # Получаем все компоненты
         values = info.data
         year = values.get('birth_year') if info.field_name != 'birth_year' else v
         month = values.get('birth_month') if info.field_name != 'birth_month' else v
         day = values.get('birth_day') if info.field_name != 'birth_day' else v
         
-        # Если есть хотя бы один NULL, пропускаем проверку
         if None in [year, month, day]:
             return v
         
-        # Проверка количества дней в месяце
         days_in_month = {
             1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30,
             7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31
         }
         
-        # Проверка високосного года
         if (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0):
             days_in_month[2] = 29
         
@@ -63,6 +63,9 @@ class ProfileReadSchema(ProfileBaseSchema):
     id: int
     created_at: datetime
     updated_at: datetime
+    current_location: Optional[LocationReadSchema] = None
+    links: Optional[List[LinkReadSchema]] = []  # Используем строку
+    
 
 
 class ProfileCreateSchema(ProfileBaseSchema):
@@ -77,7 +80,7 @@ class ProfileUpdateSchema(BaseModel):
     birth_year: Optional[int] = Field(None, ge=1900, le=datetime.now().year)
     birth_month: Optional[int] = Field(None, ge=1, le=12)
     birth_day: Optional[int] = Field(None, ge=1, le=31)
-
+    current_location_id: Optional[int] = Field(None, ge=1)
 
 
 
