@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>GraphSocial - Профили</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/components/header.css">
+    <link rel="stylesheet" href="/css/components/card.css">
+    <link rel="stylesheet" href="/css/components/modal.css">
+    <link rel="stylesheet" href="/css/components/form.css">
+    <link rel="stylesheet" href="/css/components/loading.css">
+    <link rel="stylesheet" href="/css/pages/home.css">
+    <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet">
+</head>
+<body class="home-page">
+    <div class="app">
+        <header class="header">
+            <div class="container">
+                <h1 class="logo">GraphSocial</h1>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button id="addCountryBtn" class="btn btn-secondary">🌍 Создать страну</button>
+                    <button id="addRegionBtn" class="btn btn-secondary">🏞️ Создать регион</button>
+                    <button id="addLocationBtn" class="btn btn-secondary">📍 Создать локацию</button>
+                    <button id="addPlatformBtn" class="btn btn-secondary">🔗 Создать платформу</button>
+                    <button id="addProfileBtn" class="btn btn-primary">+ Добавить профиль</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="container">
+                <div id="loading" class="loading hidden">
+                    <div class="spinner"></div>
+                    <p>Загрузка профилей...</p>
+                </div>
+
+                <div id="error" class="error hidden"></div>
+
+                <div id="profilesGrid" class="profiles-grid"></div>
+            </div>
+        </main>
+
+        <!-- Profile Modal -->
+        <div id="profileModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modalTitle">Добавить профиль</h2>
+                    <button class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="profileForm">
+                        <div class="form-group">
+                            <label for="firstName">Имя</label>
+                            <input type="text" id="firstName" name="firstName" maxlength="255" placeholder="Введите имя">
+                        </div>
+                        <div class="form-group">
+                            <label for="middleName">Отчество</label>
+                            <input type="text" id="middleName" name="middleName" maxlength="255" placeholder="Введите отчество">
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Фамилия</label>
+                            <input type="text" id="lastName" name="lastName" maxlength="255" placeholder="Введите фамилию">
+                        </div>
+                        <div class="form-group">
+                            <label for="sex">Пол</label>
+                            <select id="sex" name="sex">
+                                <option value="male">Мужской</option>
+                                <option value="female">Женский</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="birthYear">Год рождения</label>
+                                <input type="number" id="birthYear" name="birthYear" min="1900" max="2026" placeholder="ГГГГ">
+                            </div>
+                            <div class="form-group">
+                                <label for="birthMonth">Месяц</label>
+                                <input type="number" id="birthMonth" name="birthMonth" min="1" max="12" placeholder="ММ">
+                            </div>
+                            <div class="form-group">
+                                <label for="birthDay">День</label>
+                                <input type="number" id="birthDay" name="birthDay" min="1" max="31" placeholder="ДД">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="locationSelect">Локация</label>
+                            <select id="locationSelect" class="location-select">
+                                <option value="">Не указано</option>
+                            </select>
+                        </div>
+                        <div id="linksContainer"></div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" id="cancelBtn">Отмена</button>
+                            <button type="submit" class="btn btn-primary">Сохранить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Location Modal -->
+        <div id="locationModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Создать локацию</h2>
+                    <button class="close-btn location-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="locationForm">
+                        <div class="form-group">
+                            <label for="locationName">Название локации</label>
+                            <input type="text" id="locationName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="locationRegion">Регион</label>
+                            <select id="locationRegion" class="location-select">
+                                <option value="">Выберите регион</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="locationLat">Широта</label>
+                                <input type="number" id="locationLat" step="any" placeholder="55.7558">
+                            </div>
+                            <div class="form-group">
+                                <label for="locationLng">Долгота</label>
+                                <input type="number" id="locationLng" step="any" placeholder="37.6176">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary location-cancel">Отмена</button>
+                            <button type="submit" class="btn btn-primary">Создать</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Platform Modal -->
+        <div id="platformModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Создать платформу</h2>
+                    <button class="close-btn platform-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="platformForm">
+                        <div class="form-group">
+                            <label for="platformName">Название платформы</label>
+                            <input type="text" id="platformName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="platformUrl">Базовый URL</label>
+                            <input type="url" id="platformUrl" placeholder="https://example.com" required>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary platform-cancel">Отмена</button>
+                            <button type="submit" class="btn btn-primary">Создать</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+            <!-- Country Modal -->
+        <div id="countryModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Создать страну</h2>
+                    <button class="close-btn country-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="countryForm">
+                        <div class="form-group">
+                            <label for="countryName">Название страны</label>
+                            <input type="text" id="countryName" required>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary country-cancel">Отмена</button>
+                            <button type="submit" class="btn btn-primary">Создать</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Region Modal -->
+        <div id="regionModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Создать регион</h2>
+                    <button class="close-btn region-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="regionForm">
+                        <div class="form-group">
+                            <label for="regionName">Название региона</label>
+                            <input type="text" id="regionName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="regionCountry">Страна</label>
+                            <select id="regionCountry" class="location-select">
+                                <option value="">Выберите страну</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary region-cancel">Отмена</button>
+                            <button type="submit" class="btn btn-primary">Создать</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    <script src="/js/utils.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/components/Toast.js"></script>
+    <script src="/js/components/Loading.js"></script>
+    <script src="/js/components/Modal.js"></script>
+    <script src="/js/components/Card.js"></script>
+    <script src="/js/pages/profiles.js"></script>
+    <script src="/js/main.js"></script>
+</body>
+</html>

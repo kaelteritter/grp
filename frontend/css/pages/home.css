@@ -1,0 +1,17 @@
+/* Home page specific styles */
+.home-page .profiles-grid {
+    column-count: 4;
+    column-gap: 0;
+}
+
+@media (max-width: 1200px) {
+    .home-page .profiles-grid { column-count: 3; }
+}
+
+@media (max-width: 768px) {
+    .home-page .profiles-grid { column-count: 2; }
+}
+
+@media (max-width: 480px) {
+    .home-page .profiles-grid { column-count: 1; }
+}
