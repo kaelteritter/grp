@@ -8,7 +8,7 @@ from sqlalchemy import text
 from app.core.config import settings
 from app.core.database import SessionDep
 
-from app.api.v1.endpoints import profile, country, region, location, platform, link
+from app.api.v1.endpoints import profile, country, region, location, platform, link, photo
 
 app = FastAPI(title=settings.APP_NAME, debug=settings.DEBUG)
 
@@ -26,6 +26,7 @@ app.include_router(region.router, prefix="/api/v1")
 app.include_router(location.router, prefix="/api/v1")
 app.include_router(platform.router, prefix="/api/v1")
 app.include_router(link.router, prefix="/api/v1")
+app.include_router(photo.router, prefix="/api/v1")
 
 
 @app.get("/health")

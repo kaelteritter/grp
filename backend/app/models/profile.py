@@ -57,6 +57,14 @@ class Profile(Base):
         cascade="all, delete-orphan",
         lazy="selectin"
     )
+    
+    photos = relationship(
+        "Photo",
+        back_populates="profile",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+        order_by="Photo.sort_order"
+    )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime,

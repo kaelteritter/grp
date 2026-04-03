@@ -7,6 +7,7 @@ from datetime import datetime
 
 from app.schemas.location import LocationReadSchema
 from app.schemas.link import LinkReadSchema
+from backend.app.schemas.photo import PhotoForProfileReadSchema
 
 
 class Gender(str, Enum):
@@ -64,7 +65,8 @@ class ProfileReadSchema(ProfileBaseSchema):
     created_at: datetime
     updated_at: datetime
     current_location: Optional[LocationReadSchema] = None
-    links: Optional[List[LinkReadSchema]] = []  # Используем строку
+    links: Optional[List[LinkReadSchema]] = []
+    photos: Optional[List[PhotoForProfileReadSchema]] = []
     
 
 
