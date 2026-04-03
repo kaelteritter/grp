@@ -5,5 +5,6 @@ from app.models.region import Region
 from app.models.location import Location
 from app.models.platform import Platform
 from app.models.link import Link
+from app.models.photo import Photo
 
-__all__ = ["Profile", "Country", "Region", "Location", "Platform", "Link"]
+__all__ = ["Profile", "Country", "Region", "Location", "Platform", "Link", "Photo"]

@@ -46,6 +46,15 @@ from app.services.link import (
     delete_link
 )
 
+from app.services.photo import (
+    create_photo,
+    read_photo,
+    read_photos,
+    update_photo,
+    delete_photo,
+    set_avatar
+)
+
 __all__ = [
     # Profile
     "create_profile",
@@ -82,5 +91,12 @@ __all__ = [
     "read_link",
     "read_links",
     "update_link",
-    "delete_link"  
+    "delete_link",
+    # Photo
+    "create_photo",
+    "read_photo",
+    "read_photos",
+    "update_photo",
+    "delete_photo",
+    "set_avatar"
 ]
