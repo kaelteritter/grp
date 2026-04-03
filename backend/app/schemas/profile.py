@@ -5,6 +5,8 @@ from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 from typing import Optional
 
+from app.schemas.location import LocationReadSchema
+
 
 class Gender(str, Enum):
     MALE = "male"
@@ -19,6 +21,7 @@ class ProfileBaseSchema(BaseModel):
     birth_year: Optional[int] = Field(None, ge=1900, le=datetime.now().year)
     birth_month: Optional[int] = Field(None, ge=1, le=12)
     birth_day: Optional[int] = Field(None, ge=1, le=31)
+    current_location_id: Optional[int] = Field(None, ge=1)
 
     @field_validator('birth_year')
     @classmethod
@@ -63,6 +66,8 @@ class ProfileReadSchema(ProfileBaseSchema):
     id: int
     created_at: datetime
     updated_at: datetime
+    current_location: Optional[LocationReadSchema]
+
 
 
 class ProfileCreateSchema(ProfileBaseSchema):
@@ -77,7 +82,5 @@ class ProfileUpdateSchema(BaseModel):
     birth_year: Optional[int] = Field(None, ge=1900, le=datetime.now().year)
     birth_month: Optional[int] = Field(None, ge=1, le=12)
     birth_day: Optional[int] = Field(None, ge=1, le=31)
-
-
-
+    current_location_id: Optional[int] = Field(None, ge=1)
 

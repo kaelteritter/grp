@@ -1,17 +1,15 @@
-# backend/app/schemas/region.py
-
 from typing import Optional
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
+
+from app.schemas.country import CountryReadSchema
 
 
 class RegionReadSchema(BaseModel):
     id: int
     name: str
-    country_id: Optional[int] = None
-    country_name: Optional[str] = None  # Для удобства отображения
+    country: Optional[CountryReadSchema] = None  # Сделаем поле опциональным
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RegionCreateSchema(BaseModel):
@@ -21,7 +19,6 @@ class RegionCreateSchema(BaseModel):
     @field_validator('name')
     @classmethod
     def validate_name_not_empty(cls, v):
-        """Проверка, что имя не пустое и не состоит из пробелов"""
         if not v or not v.strip():
             raise ValueError("Название региона не может быть пустым")
         return v.strip()

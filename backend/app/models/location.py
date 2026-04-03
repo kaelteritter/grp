@@ -34,9 +34,14 @@ class Location(Base):
         nullable=True
     )
     
-    # Связь с регионом
     region = relationship(
         "Region", 
         back_populates="locations",
+        lazy="selectin"
+    )
+
+    profiles = relationship(
+        "Profile", 
+        back_populates="current_location",
         lazy="selectin"
     )

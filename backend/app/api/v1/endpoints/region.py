@@ -13,7 +13,7 @@ router = APIRouter(prefix="/regions", tags=["regions"])
 
 def enrich_region_with_country_name(region):
     """Добавляет название страны в ответ"""
-    result = RegionReadSchema.model_validate(region)
+    return RegionReadSchema.model_validate(region, from_attributes=True)
     if region.country:
         result.country_name = region.country.name
     return result

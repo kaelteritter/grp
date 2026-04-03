@@ -1,5 +1,3 @@
-# backend/app/api/v1/endpoints/location.py:
-
 from fastapi import APIRouter, Query, status
 from typing import List, Optional
 
@@ -11,15 +9,10 @@ from app.schemas.location import LocationCreateSchema, LocationReadSchema, Locat
 router = APIRouter(prefix="/locations", tags=["locations"])
 
 
-def enrich_location_with_region_name(location):
-    """Добавляет название региона в ответ"""
-    result = LocationReadSchema.model_validate(location, from_attributes=True)
-    if location.region:
-        result.region_name = location.region.name
-        if location.region.country:
-            result.country_id = location.region.country.id
-            result.country_name = location.region.country.name
-    return result
+def enrich_location_with_region(location):
+    """Обогащает локацию данными о регионе и стране"""
+    # Pydantic сам обработает вложенные объекты благодаря from_attributes=True
+    return LocationReadSchema.model_validate(location, from_attributes=True)
 
 
 @router.post("/", response_model=LocationReadSchema, status_code=status.HTTP_201_CREATED)
@@ -31,7 +24,7 @@ async def create_location(
     Создать новую локацию
     """
     location = await services.create_location(db, location_in)
-    return enrich_location_with_region_name(location)
+    return enrich_location_with_region(location)
 
 
 @router.get("/", response_model=List[LocationReadSchema], status_code=status.HTTP_200_OK)
@@ -45,7 +38,7 @@ async def read_locations(
     Получить список локаций с фильтрацией по региону
     """
     locations = await services.read_locations(db, region_id=region_id, skip=skip, limit=limit)
-    return [enrich_location_with_region_name(location) for location in locations]
+    return [enrich_location_with_region(location) for location in locations]
 
 
 @router.get("/{location_id}", response_model=LocationReadSchema, status_code=status.HTTP_200_OK)
@@ -57,7 +50,7 @@ async def read_location(
     Получить локацию по ID
     """
     location = await services.read_location(db, location_id)
-    return enrich_location_with_region_name(location)
+    return enrich_location_with_region(location)
 
 
 @router.patch("/{location_id}", response_model=LocationReadSchema, status_code=status.HTTP_200_OK)
@@ -70,7 +63,7 @@ async def update_location(
     Обновить локацию
     """
     location = await services.update_location(db, location_id, location_in)
-    return enrich_location_with_region_name(location)
+    return enrich_location_with_region(location)
 
 
 @router.delete("/{location_id}", status_code=status.HTTP_204_NO_CONTENT)
