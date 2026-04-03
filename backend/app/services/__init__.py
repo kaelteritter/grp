@@ -22,6 +22,14 @@ from app.services.region import (
     delete_region
 )
 
+from app.services.location import (
+    create_location,
+    read_location,
+    read_locations,
+    update_location,
+    delete_location
+)
+
 __all__ = [
     # Profile
     "create_profile",
@@ -41,4 +49,10 @@ __all__ = [
     "read_regions",
     "update_region",
     "delete_region",
+    # Location
+    "create_location",
+    "read_location",
+    "read_locations",
+    "update_location",
+    "delete_location",
 ]

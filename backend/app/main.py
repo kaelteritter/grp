@@ -6,7 +6,7 @@ from sqlalchemy import text
 from app.core.config import settings
 from app.core.database import SessionDep
 
-from app.api.v1.endpoints import profile, country, region
+from app.api.v1.endpoints import profile, country, region, location
 
 app = FastAPI(title=settings.APP_NAME, debug=settings.DEBUG)
 
@@ -21,6 +21,7 @@ app.add_middleware(
 app.include_router(profile.router, prefix="/api/v1")
 app.include_router(country.router, prefix="/api/v1")
 app.include_router(region.router, prefix="/api/v1")
+app.include_router(location.router, prefix="/api/v1")
 
 
 @app.get("/health")

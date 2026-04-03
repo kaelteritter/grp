@@ -31,3 +31,11 @@ class Region(Base):
         back_populates="regions",
         lazy="selectin"
     )
+
+    # Связь с локациями
+    locations = relationship(
+        "Location", 
+        back_populates="region",
+        cascade="all, delete-orphan",
+        lazy="selectin"
+    )

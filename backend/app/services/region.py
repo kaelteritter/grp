@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -79,7 +80,7 @@ async def read_region(db: AsyncSession, region_id: int):
 
 async def read_regions(
     db: AsyncSession, 
-    country_id: int = None,
+    country_id: Optional[int] = None,
     skip: int = 0, 
     limit: int = 100
 ):
