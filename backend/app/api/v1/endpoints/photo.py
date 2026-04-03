@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import uuid
 
 from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile, status
@@ -74,8 +75,15 @@ async def delete_photo(
     photo_id: int
 ):
     """
-    Удалить фотографию
+    Удалить фотографию и файл с диска
     """
+    photo = await services.read_photo(db, photo_id)
+    
+    # Delete physical file
+    file_path = Path(f"uploads/photos/{photo.profile_id}/{Path(photo.url).name}")
+    if file_path.exists():
+        file_path.unlink()
+    
     await services.delete_photo(db, photo_id)
     return None
 
@@ -105,15 +113,15 @@ async def upload_multiple_photos(
     """
     uploaded_photos = []
     
-    # Create upload directory if not exists
-    UPLOAD_DIR = "uploads/photos"
-    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    # Create profile-specific directory
+    UPLOAD_DIR = Path(f"uploads/photos/{profile_id}")
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     
     for file in files:
         # Generate unique filename
-        file_extension = os.path.splitext(file.filename)[1] # type: ignore
+        file_extension = os.path.splitext(file.filename)[1]
         unique_filename = f"{uuid.uuid4()}{file_extension}"
-        file_path = os.path.join(UPLOAD_DIR, unique_filename)
+        file_path = UPLOAD_DIR / unique_filename
         
         # Save file
         content = await file.read()
@@ -121,14 +129,18 @@ async def upload_multiple_photos(
             f.write(content)
         
         # Create URL for the file
-        file_url = f"/uploads/photos/{unique_filename}"
+        file_url = f"/uploads/photos/{profile_id}/{unique_filename}"
+        
+        # Check if this is the first photo - make it avatar
+        existing_photos = await services.read_photos(db, profile_id=profile_id)
+        is_avatar = len(existing_photos) == 0
         
         # Create photo in database
         photo_in = PhotoCreateSchema(
             url=file_url,
             profile_id=profile_id,
             title=file.filename,
-            is_avatar=False
+            is_avatar=is_avatar
         )
         
         photo = await services.create_photo(db, photo_in)

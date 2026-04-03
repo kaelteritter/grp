@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -199,3 +199,16 @@ async def set_avatar(db: AsyncSession, profile_id: int, photo_id: int):
     await db.refresh(photo)
     
     return photo
+
+
+async def reorder_photos(db: AsyncSession, profile_id: int, photo_ids: List[int]):
+    """
+    Обновить порядок фотографий
+    """
+    for index, photo_id in enumerate(photo_ids):
+        stmt = select(Photo).where(Photo.id == photo_id, Photo.profile_id == profile_id)
+        result = await db.execute(stmt)
+        photo = result.scalar_one_or_none()
+        if photo:
+            photo.sort_order = index
+    await db.commit()

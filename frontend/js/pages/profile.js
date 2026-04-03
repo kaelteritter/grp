@@ -283,6 +283,26 @@ class ProfilePage {
         }
     }
 
+    async reorderPhotos(photoIds) {
+        try {
+            Loading.show();
+            const response = await fetch(`http://localhost:8000/api/v1/photos/reorder/${this.profile.id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ photo_ids: photoIds })
+            });
+            
+            if (response.ok) {
+                await this.loadProfile(this.profile.id);
+                this.render();
+            }
+        } catch (error) {
+            console.error('Reorder error:', error);
+        } finally {
+            Loading.hide();
+        }
+    }
+
     previewPhotos() {
         const fileInput = document.getElementById('photoFiles');
         const previewGrid = document.getElementById('photoPreview');
