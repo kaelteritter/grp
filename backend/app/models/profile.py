@@ -97,4 +97,5 @@ class Profile(Base):
             """,
             name="check_valid_date"
         ),
+        {"extend_existing": True},
     )

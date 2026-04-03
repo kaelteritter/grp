@@ -6,8 +6,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from backend.app.models.country import Country
-from backend.app.schemas.country import CountryCreateSchema, CountryReadSchema, CountryUpdateSchema
+from app.models.country import Country
+from app.schemas.country import CountryCreateSchema, CountryReadSchema, CountryUpdateSchema
 
 
 async def create_country(db: AsyncSession, country_in: CountryCreateSchema):

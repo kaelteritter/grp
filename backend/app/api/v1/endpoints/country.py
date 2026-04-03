@@ -8,7 +8,7 @@ from app.core.database import SessionDep
 from app.schemas.country import CountryCreateSchema, CountryReadSchema, CountryUpdateSchema
 
 
-router = APIRouter(prefix="/api/v1/countries", tags=["countries"])
+router = APIRouter(prefix="/countries", tags=["countries"])
 
 
 

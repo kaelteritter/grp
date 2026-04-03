@@ -9,7 +9,7 @@ from app import services
 
 
 router = APIRouter(
-    prefix="/api/v1/profiles",
+    prefix="/profiles",
     tags=["profiles"]
 )
 
