@@ -45,3 +45,10 @@ class Location(Base):
         back_populates="current_location",
         lazy="selectin"
     )
+
+    addresses = relationship(
+        "Address",
+        back_populates="location",
+        cascade="all, delete-orphan",
+        lazy="selectin"
+    )

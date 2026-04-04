@@ -57,6 +57,15 @@ from app.services.photo import (
     delete_photos,
 )
 
+from app.services.address import (
+    create_address,
+    read_address,
+    read_addresses,
+    update_address,
+    delete_address
+)
+
+
 __all__ = [
     # Profile
     "create_profile",
@@ -103,4 +112,10 @@ __all__ = [
     "set_avatar",
     "create_photos",
     "delete_photos",
+    # Address
+    "create_address",
+    "read_address",
+    "read_addresses",
+    "update_address",
+    "delete_address",
 ]
