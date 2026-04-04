@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.core.storage import storage
 from app.models.video import Video
 from app.models.profile import Profile
 from app.schemas.video import VideoCreateSchema, VideoUpdateSchema
@@ -200,3 +201,40 @@ async def set_cover(db: AsyncSession, profile_id: int, video_id: int):
     await db.refresh(video)
     
     return video
+
+
+async def create_videos(db, files, profile_id):
+    uploaded_videos = []
+    
+    # Проверяем существование профиля
+    stmt = select(Profile).where(Profile.id == profile_id)
+    result = await db.execute(stmt)
+    profile = result.scalar_one_or_none()
+    
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Профиль с ID {profile_id} не найден"
+        )
+    
+    for index, file in enumerate(files):
+        # Читаем содержимое файла
+        content = await file.read()
+        
+        # Сохраняем в хранилище
+        file_url = storage.save_video(profile_id, content, file.filename)
+        
+        # Создаем запись в БД
+        video_in = VideoCreateSchema(
+            url=file_url,
+            profile_id=profile_id,
+            title=file.filename,
+            duration=0,
+            thumbnail_url=None,
+            sort_order=index,
+        )
+        
+        video = await create_video(db, video_in)
+        uploaded_videos.append(video)
+    
+    return uploaded_videos

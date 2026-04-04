@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile, status
 from typing import List, Optional
 
 from app.core.database import SessionDep
@@ -88,3 +88,16 @@ async def set_profile_cover(
     """
     video = await services.set_cover(db, profile_id, video_id)
     return enrich_video(video)
+
+
+@router.post("/multiple/", response_model=List[VideoReadSchema], status_code=status.HTTP_201_CREATED)
+async def upload_multiple_videos(
+    db: SessionDep,
+    files: List[UploadFile] = File(...),
+    profile_id: int = Form(...)
+):
+    """
+    Загрузить несколько видео в S3-подобное хранилище
+    """
+    videos = await services.create_videos(db, files, profile_id)
+    return videos

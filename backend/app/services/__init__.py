@@ -90,7 +90,8 @@ from app.services.video import (
     read_videos,
     update_video,
     delete_video,
-    set_cover
+    set_cover,
+    create_videos,
 )
 
 from app.services.cloth import (
@@ -211,6 +212,7 @@ __all__ = [
     "remove_profession_from_profile",
     # Video
     "create_video",
+    "create_videos",
     "read_video",
     "read_videos",
     "update_video",
