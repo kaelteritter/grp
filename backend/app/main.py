@@ -1,22 +1,23 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
 
 from app.core.config import settings
-
-from app.api.v1.endpoints import profile, country, region, location, platform, link, photo
+from app.core.paths import STORAGE_DIR
 from app.core.database import get_db
+from app.api.v1.endpoints import profile, country, region, location, platform, link, photo
 
-
+# ================== СОЗДАНИЕ ПРИЛОЖЕНИЯ ==================
 app = FastAPI(
     title=settings.APP_NAME,
     description="GraphSocial API - Social Network Platform",
     version="1.0.0",
-    docs_url="/api/docs",
-    redoc_url="/api/redoc",
-    openapi_url="/api/openapi.json"
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
 )
 
 # ================== ЛИМИТЫ ВЗАИМОДЕЙСТВИЯ С API ==================
@@ -28,17 +29,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ================== РОУТИНГ==================
-app.include_router(profile.router)
-app.include_router(country.router)
-app.include_router(region.router)
-app.include_router(location.router)
-app.include_router(platform.router)
-app.include_router(link.router)
-app.include_router(photo.router)
+# ================== МОНТИРОВАНИЕ ХРАНИЛИЩА ФАЙЛОВ ==================
+print(f"[Main] Storage directory: {STORAGE_DIR}")
+print(f"[Main] Storage exists: {STORAGE_DIR.exists()}")
 
-app.mount("/api/v1", app)
+# Создаем storage если нет
+STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/storage", StaticFiles(directory=str(STORAGE_DIR)), name="storage")
+print(f"[Main] Storage mounted at /storage -> {STORAGE_DIR}")
 
+# ================== ПОДКЛЮЧЕНИЕ РОУТЕРОВ API ==================
+# Подключаем роутеры напрямую с префиксом /api/v1
+app.include_router(profile.router, prefix="/api/v1")
+app.include_router(country.router, prefix="/api/v1")
+app.include_router(region.router, prefix="/api/v1")
+app.include_router(location.router, prefix="/api/v1")
+app.include_router(platform.router, prefix="/api/v1")
+app.include_router(link.router, prefix="/api/v1")
+app.include_router(photo.router, prefix="/api/v1")
+
+print("[Main] API routers registered with prefix /api/v1")
 
 # ================== HEALTHCHECK ==================
 @app.get("/health")
@@ -53,6 +63,7 @@ async def db_health_check(db: AsyncSession = Depends(get_db)):
     except Exception as e:
         return {"status": "error", "database": "disconnected", "error": str(e)}
 
+# ================== ЗАПУСК ==================
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(

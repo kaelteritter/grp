@@ -75,17 +75,22 @@ async def delete_photo(
     photo_id: int
 ):
     """
-    Удалить фотографию и файл с диска
+    Удалить фотографию из хранилища и БД
     """
-    photo = await services.read_photo(db, photo_id)
-    
-    # Delete physical file
-    file_path = Path(f"uploads/photos/{photo.profile_id}/{Path(photo.url).name}")
-    if file_path.exists():
-        file_path.unlink()
-    
+    # Удаляем запись из БД
     await services.delete_photo(db, photo_id)
     return None
+
+
+@router.delete("/profile/{profile_id}/all", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_photos(
+    db: SessionDep,
+    profile_id: int
+):
+    """
+    Удалить все фотографии профиля
+    """
+    return services.delete_photos(db, profile_id)
 
 
 @router.patch("/profile/{profile_id}/avatar/{photo_id}", response_model=PhotoReadSchema)
@@ -109,41 +114,6 @@ async def upload_multiple_photos(
     profile_id: int = Form(...)
 ):
     """
-    Загрузить несколько фотографий
+    Загрузить несколько фотографий в S3-подобное хранилище
     """
-    uploaded_photos = []
-    
-    # Create profile-specific directory
-    UPLOAD_DIR = Path(f"uploads/photos/{profile_id}")
-    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-    
-    for file in files:
-        # Generate unique filename
-        file_extension = os.path.splitext(file.filename)[1]
-        unique_filename = f"{uuid.uuid4()}{file_extension}"
-        file_path = UPLOAD_DIR / unique_filename
-        
-        # Save file
-        content = await file.read()
-        with open(file_path, "wb") as f:
-            f.write(content)
-        
-        # Create URL for the file
-        file_url = f"/uploads/photos/{profile_id}/{unique_filename}"
-        
-        # Check if this is the first photo - make it avatar
-        existing_photos = await services.read_photos(db, profile_id=profile_id)
-        is_avatar = len(existing_photos) == 0
-        
-        # Create photo in database
-        photo_in = PhotoCreateSchema(
-            url=file_url,
-            profile_id=profile_id,
-            title=file.filename,
-            is_avatar=is_avatar
-        )
-        
-        photo = await services.create_photo(db, photo_in)
-        uploaded_photos.append(photo)
-    
-    return uploaded_photos
+    return await services.create_photos(db, files, profile_id)
