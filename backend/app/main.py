@@ -11,6 +11,7 @@ from app.core.database import get_db
 from app.api.v1.endpoints import (
     cloth,
     company,
+    connection,
     profession,
     profile,
     country,
@@ -66,6 +67,7 @@ app.include_router(company.router, prefix="/api/v1")
 app.include_router(profession.router, prefix="/api/v1")
 app.include_router(video.router, prefix="/api/v1")
 app.include_router(cloth.router, prefix="/api/v1")
+app.include_router(connection.router, prefix="/api/v1")
 
 print("[Main] API routers registered with prefix /api/v1")
 

@@ -1,19 +1,47 @@
-# backend/app/models/profile.py
-
 from datetime import datetime
 import enum
 
-from sqlalchemy import CheckConstraint, DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy import CheckConstraint, DateTime, Enum, ForeignKey, Integer, String, Table, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
-from app.models.profession import employments
 
+
+# Таблица связей между профилями
+profile_connections = Table(
+    "profile_connections",
+    Base.metadata,
+    Column("profile_id", Integer, ForeignKey("profiles.id", ondelete="CASCADE"), primary_key=True),
+    Column("connected_profile_id", Integer, ForeignKey("profiles.id", ondelete="CASCADE"), primary_key=True),
+    Column("relation_type", String(50), nullable=False),
+    Column("created_at", DateTime, default=datetime.now)
+)
 
 
 class Gender(str, enum.Enum):
     MALE = "male"
     FEMALE = "female"
+
+
+class RelationType(str, enum.Enum):
+    # Родительские отношения
+    MOTHER = "mother"
+    FATHER = "father"
+    DAUGHTER = "daughter"
+    SON = "son"
+    # Сиблинги
+    BROTHER = "brother"
+    SISTER = "sister"
+    # Дружеские
+    FRIEND = "friend"
+    BEST_FRIEND = "best_friend"
+    # Рабочие
+    COLLEAGUE = "colleague"
+    BOSS = "boss"
+    SUBORDINATE = "subordinate"
+    # Другие
+    ACQUAINTANCE = "acquaintance"
+    PARTNER = "partner"
 
 
 class Profile(Base):
@@ -47,10 +75,26 @@ class Profile(Base):
     birth_month: Mapped[int] = mapped_column(Integer, nullable=True)
     birth_day: Mapped[int] = mapped_column(Integer, nullable=True)
 
+    # Новые поля
+    email: Mapped[str] = mapped_column(
+        String(255),
+        nullable=True,
+        unique=True
+    )
+    phone: Mapped[str] = mapped_column(
+        String(20),
+        nullable=True
+    )
+    hair_color: Mapped[str] = mapped_column(
+        String(50),
+        nullable=True
+    )
+
     current_location_id: Mapped[int] = mapped_column(ForeignKey("locations.id"), nullable=True)
     current_location = relationship(
         "Location",
         back_populates="profiles",
+        lazy="selectin"
     )
 
     links = relationship(
@@ -64,23 +108,31 @@ class Profile(Base):
         "Photo",
         back_populates="profile",
         cascade="all, delete-orphan",
-        lazy="selectin",
-        order_by="Photo.sort_order"
-    )
-
-    professions = relationship(
-        "Profession",
-        secondary=employments,
-        back_populates="profiles",
         lazy="selectin"
     )
-
+    
     videos = relationship(
         "Video",
         back_populates="profile",
         cascade="all, delete-orphan",
-        lazy="selectin",
-        order_by="Video.sort_order"
+        lazy="selectin"
+    )
+    
+    professions = relationship(
+        "Profession",
+        secondary="employments",
+        back_populates="profiles",
+        lazy="selectin"
+    )
+    
+    # Связи с другими профилями
+    connections = relationship(
+        "Profile",
+        secondary=profile_connections,
+        primaryjoin=id == profile_connections.c.profile_id,
+        secondaryjoin=id == profile_connections.c.connected_profile_id,
+        viewonly=True,
+        lazy="selectin"
     )
 
     created_at: Mapped[datetime] = mapped_column(
@@ -137,5 +189,4 @@ class Profile(Base):
             """,
             name="check_valid_date"
         ),
-        {"extend_existing": True},
     )

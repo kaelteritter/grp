@@ -103,6 +103,12 @@ from app.services.cloth import (
     remove_photo_from_cloth
 )
 
+from app.services.connection import (
+    add_connection,
+    remove_connection,
+    get_profile_connections
+)
+
 __all__ = [
     # Profile
     "create_profile",
@@ -185,4 +191,8 @@ __all__ = [
     "delete_cloth",
     "add_photo_to_cloth",
     "remove_photo_from_cloth",
+    # Connection
+    "add_connection",
+    "remove_connection",
+    "get_profile_connections",
 ]
