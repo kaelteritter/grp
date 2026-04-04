@@ -109,6 +109,30 @@ from app.services.connection import (
     get_profile_connections
 )
 
+from app.services.event import (
+    create_event,
+    read_event,
+    read_events,
+    update_event,
+    delete_event
+)
+
+from app.services.season import (
+    create_season,
+    read_season,
+    read_seasons,
+    update_season,
+    delete_season
+)
+
+from app.services.daytime import (
+    create_daytime,
+    read_daytime,
+    read_daytimes,
+    update_daytime,
+    delete_daytime
+)
+
 __all__ = [
     # Profile
     "create_profile",
@@ -195,4 +219,21 @@ __all__ = [
     "add_connection",
     "remove_connection",
     "get_profile_connections",
+    # Event
+    "create_event",
+    "read_event",
+    "read_events",
+    "update_event",
+    "delete_event",
+    # Season
+    "create_season",
+    "read_season",
+    "read_seasons",
+    "update_season",
+    "delete_season",
+    # DayTime
+    "create_daytime",
+    "read_daytime",
+    "read_daytimes",
+    "update_daytime", 
 ]

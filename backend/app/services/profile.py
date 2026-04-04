@@ -148,7 +148,7 @@ async def update_profile(db: AsyncSession, profile_id: int, profile_in: ProfileU
         await db.rollback()
         if "UNIQUE constraint failed: profiles.email" in str(e):
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail="Профиль с таким email уже существует"
             )
         raise HTTPException(

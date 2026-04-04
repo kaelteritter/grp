@@ -11,6 +11,9 @@ from app.models.company import Company
 from app.models.profession import Profession
 from app.models.video import Video
 from app.models.cloth import Cloth
+from app.models.event import Event
+from app.models.daytime import DayTime
+from app.models.season import Season
 
 __all__ = [
     "Profile",
@@ -25,4 +28,7 @@ __all__ = [
     "Profession",
     "Video",
     "Cloth",
+    "Event",
+    "DayTime",
+    "Season",
 ]

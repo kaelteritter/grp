@@ -43,5 +43,4 @@ class Address(Base):
         lazy="selectin"
     )
     
-    # Связь с пользователем (если нужна)
-    # user = relationship("User", back_populates="addresses")
+    photos = relationship("Photo", back_populates="address", lazy="selectin")

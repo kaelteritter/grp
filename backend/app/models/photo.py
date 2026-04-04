@@ -1,10 +1,8 @@
 from datetime import datetime
-
-from sqlalchemy import DateTime, ForeignKey, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
+from sqlalchemy import ForeignKey, Integer, String, DateTime, Boolean, Float
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
-
 from app.models.cloth import photo_clothes
 
 
@@ -32,10 +30,12 @@ class Photo(Base):
         nullable=True
     )
     is_avatar: Mapped[bool] = mapped_column(
+        Boolean,
         default=False,
         nullable=False
     )
     sort_order: Mapped[int] = mapped_column(
+        Integer,
         default=0,
         nullable=False
     )
@@ -44,21 +44,40 @@ class Photo(Base):
         default=datetime.now,
         nullable=False
     )
+    
+    # Новые поля
+    rating: Mapped[float] = mapped_column(
+        Float,
+        nullable=True
+    )
+    season_id: Mapped[int] = mapped_column(
+        ForeignKey("seasons.id", ondelete="SET NULL"),
+        nullable=True
+    )
+    daytime_id: Mapped[int] = mapped_column(
+        ForeignKey("daytimes.id", ondelete="SET NULL"),
+        nullable=True
+    )
+    event_id: Mapped[int] = mapped_column(
+        ForeignKey("events.id", ondelete="SET NULL"),
+        nullable=True
+    )
+    address_id: Mapped[int] = mapped_column(
+        ForeignKey("addresses.id", ondelete="SET NULL"),
+        nullable=True
+    )
 
-    profile = relationship("Profile", back_populates="photos")
+    # Связи
+    profile = relationship("Profile", back_populates="photos", lazy="selectin")
+    
     clothes = relationship(
         "Cloth",
         secondary=photo_clothes,
         back_populates="photos",
         lazy="selectin"
     )
-
-    @validates('url')
-    def validate_url(self, key, url):
-        if not url or not url.strip():
-            raise ValueError("URL фото не может быть пустым")
-        if len(url) > 500:
-            raise ValueError("URL не может быть длиннее 500 символов")
-        return url.strip()
     
-    
+    season = relationship("Season", back_populates="photos", lazy="selectin")
+    daytime = relationship("DayTime", back_populates="photos", lazy="selectin")
+    event = relationship("Event", back_populates="photos", lazy="selectin")
+    address = relationship("Address", back_populates="photos", lazy="selectin")

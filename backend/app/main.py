@@ -12,6 +12,7 @@ from app.api.v1.endpoints import (
     cloth,
     company,
     connection,
+    event,
     profession,
     profile,
     country,
@@ -22,6 +23,8 @@ from app.api.v1.endpoints import (
     photo,
     address,
     video,
+    season,
+    daytime,
 )
 
 
@@ -68,6 +71,9 @@ app.include_router(profession.router, prefix="/api/v1")
 app.include_router(video.router, prefix="/api/v1")
 app.include_router(cloth.router, prefix="/api/v1")
 app.include_router(connection.router, prefix="/api/v1")
+app.include_router(season.router, prefix="/api/v1")
+app.include_router(daytime.router, prefix="/api/v1")
+app.include_router(event.router, prefix="/api/v1")  
 
 print("[Main] API routers registered with prefix /api/v1")
 
