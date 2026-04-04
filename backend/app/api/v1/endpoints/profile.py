@@ -33,14 +33,13 @@ async def read_profiles(
     return [enrich_profile_with_location(profile) for profile in profiles]
 
 
+
+
 @router.post("/", response_model=ProfileReadSchema, status_code=status.HTTP_201_CREATED)
 async def create_profile(
     db: SessionDep,
     profile_in: ProfileCreateSchema
 ):
-    """
-    Создать новый профиль
-    """
     profile = await services.create_profile(db, profile_in)
     return enrich_profile_with_location(profile)
 

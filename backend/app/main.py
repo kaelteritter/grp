@@ -8,7 +8,26 @@ from fastapi import Depends
 from app.core.config import settings
 from app.core.paths import STORAGE_DIR
 from app.core.database import get_db
-from app.api.v1.endpoints import profile, country, region, location, platform, link, photo
+from app.api.v1.endpoints import (
+    cloth,
+    company,
+    connection,
+    event,
+    photo_tag,
+    profession,
+    profile,
+    country,
+    region,
+    location,
+    platform,
+    link,
+    photo,
+    address,
+    video,
+    season,
+    daytime,
+)
+
 
 # ================== СОЗДАНИЕ ПРИЛОЖЕНИЯ ==================
 app = FastAPI(
@@ -17,7 +36,7 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
-    openapi_url="/openapi.json"
+    openapi_url="/openapi.json",
 )
 
 # ================== ЛИМИТЫ ВЗАИМОДЕЙСТВИЯ С API ==================
@@ -47,13 +66,25 @@ app.include_router(location.router, prefix="/api/v1")
 app.include_router(platform.router, prefix="/api/v1")
 app.include_router(link.router, prefix="/api/v1")
 app.include_router(photo.router, prefix="/api/v1")
+app.include_router(address.router, prefix="/api/v1")
+app.include_router(company.router, prefix="/api/v1")
+app.include_router(profession.router, prefix="/api/v1")
+app.include_router(video.router, prefix="/api/v1")
+app.include_router(cloth.router, prefix="/api/v1")
+app.include_router(connection.router, prefix="/api/v1")
+app.include_router(season.router, prefix="/api/v1")
+app.include_router(daytime.router, prefix="/api/v1")
+app.include_router(event.router, prefix="/api/v1") 
+app.include_router(photo_tag.router, prefix="/api/v1") 
 
 print("[Main] API routers registered with prefix /api/v1")
+
 
 # ================== HEALTHCHECK ==================
 @app.get("/health")
 async def health_check():
     return {"status": "ok", "service": settings.APP_NAME, "version": "1.0.0"}
+
 
 @app.get("/health/db")
 async def db_health_check(db: AsyncSession = Depends(get_db)):
@@ -63,12 +94,9 @@ async def db_health_check(db: AsyncSession = Depends(get_db)):
     except Exception as e:
         return {"status": "error", "database": "disconnected", "error": str(e)}
 
+
 # ================== ЗАПУСК ==================
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(
-        "app.main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=settings.DEBUG
-    )
+
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=settings.DEBUG)

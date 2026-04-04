@@ -47,11 +47,30 @@ const CalendarIcon = () => (
   </svg>
 );
 
+const BriefcaseIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+  </svg>
+);
+
+const HairIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M12 2c-3.5 0-6 2.5-6 6 0 4 3 7 6 7s6-3 6-7c0-3.5-2.5-6-6-6z" />
+    <path d="M12 15v5" />
+    <path d="M9 20h6" />
+  </svg>
+);
+
 const ProfileCard = ({ profile, onEdit, onDelete, onAvatarClick, onNameClick }) => {
   const fullName = [profile.last_name, profile.first_name, profile.middle_name].filter(Boolean).join(' ') || 'Без имени';
   const avatarPhoto = profile.photos?.find(p => p.is_avatar) || profile.photos?.[0];
   const location = profile.current_location;
   const fullLocation = location ? [location.name, location.region?.name, location.region?.country?.name].filter(Boolean).join(', ') : '';
+  const profession = profile.professions?.[0];
+  const professionName = profession?.name || '';
+  const companyName = profession?.company_name || '';
+  const hairColor = profile.hair_color;
   
   const formatBirthDate = () => {
     const { birth_year, birth_month, birth_day } = profile;
@@ -59,6 +78,18 @@ const ProfileCard = ({ profile, onEdit, onDelete, onAvatarClick, onNameClick }) 
     if (birth_year && birth_month) return `${birth_year}-${String(birth_month).padStart(2, '0')}`;
     if (birth_year) return `${birth_year}`;
     return '';
+  };
+
+  const getHairColorStyle = () => {
+    if (!hairColor) return { backgroundColor: '#333' };
+    const colorMap = {
+      'блондин': '#F5D7B3',
+      'брюнет': '#3C2415',
+      'шатен': '#8B5A2B',
+      'рыжий': '#D4561E',
+      'черный': '#1A1A1A',
+    };
+    return { backgroundColor: colorMap[hairColor.toLowerCase()] || hairColor };
   };
 
   return (
@@ -76,43 +107,70 @@ const ProfileCard = ({ profile, onEdit, onDelete, onAvatarClick, onNameClick }) 
           </div>
         )}
       </div>
-      
 
-      {/* Информация появляется только при наведении - в колонку */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/90 to-transparent p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+      {/* Информация появляется только при наведении - каждая на новой строке */}
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/90 to-transparent p-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+        {/* ФИО */}
         <div 
-          className="text-sm font-medium text-white hover:text-gray-300 transition cursor-pointer mb-2"
+          className="text-sm font-medium text-white hover:text-gray-300 transition cursor-pointer mb-1"
           onClick={() => onNameClick(profile.id)}
         >
           {fullName}
         </div>
-        <div className="flex flex-col gap-1 text-[11px] text-gray-300">
-          <div className="flex items-center gap-2">
-            {profile.sex === 'male' ? <MaleIcon /> : <FemaleIcon />}
-            <span>{profile.sex === 'male' ? 'Male' : 'Female'}</span>
+        
+        {/* Пол - отдельная строка */}
+        <div className="flex items-center gap-1.5 text-[10px] text-gray-300 mb-0.5">
+          {profile.sex === 'male' ? <MaleIcon /> : <FemaleIcon />}
+          <span>{profile.sex === 'male' ? 'Male' : 'Female'}</span>
+        </div>
+        
+        {/* Дата рождения - отдельная строка */}
+        {formatBirthDate() && (
+          <div className="flex items-center gap-1.5 text-[10px] text-gray-300 mb-0.5">
+            <CalendarIcon />
+            <span>{formatBirthDate()}</span>
           </div>
-          {formatBirthDate() && (
-            <div className="flex items-center gap-2">
-              <CalendarIcon />
-              <span>{formatBirthDate()}</span>
-            </div>
-          )}
-          {fullLocation && (
-            <div className="flex items-center gap-2 truncate">
-              <LocationIcon />
-              <span className="truncate">{fullLocation}</span>
-            </div>
+        )}
+        
+        {/* Локация - отдельная строка */}
+        {fullLocation && (
+          <div className="flex items-center gap-1.5 text-[10px] text-gray-300 mb-0.5 truncate">
+            <LocationIcon />
+            <span className="truncate">{fullLocation}</span>
+          </div>
+        )}
+        
+        {/* Профессия (компания) - отдельная строка */}
+        {professionName && (
+          <div className="flex items-center gap-1.5 text-[10px] text-gray-300 mb-0.5">
+            <BriefcaseIcon />
+            <span className="truncate">{professionName}{companyName ? ` @ ${companyName}` : ''}</span>
+          </div>
+        )}
+        
+        {/* Цвет волос - отдельная строка, только иконка и точка */}
+        <div className="flex items-center gap-1.5 text-[10px] text-gray-300 mb-0.5">
+          <HairIcon />
+          {hairColor ? (
+            <span 
+              className="inline-block w-2.5 h-2.5 rounded-full" 
+              style={getHairColorStyle()}
+            />
+          ) : (
+            <span className="text-gray-500">—</span>
           )}
         </div>
+        
+        {/* Ссылки */}
         {profile.links?.length > 0 && (
-          <div className="flex gap-1 mt-2 flex-wrap">
+          <div className="flex gap-1 mt-1 flex-wrap">
             {profile.links.map(link => (
               <a 
                 key={link.id}
                 href={link.url} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-[10px] bg-white/10 px-2 py-0.5 hover:bg-white/20 transition"
+                className="text-[9px] bg-white/10 px-1.5 py-0.5 hover:bg-white/20 transition rounded"
                 onClick={e => e.stopPropagation()}
               >
                 {link.platform.name}
@@ -125,13 +183,15 @@ const ProfileCard = ({ profile, onEdit, onDelete, onAvatarClick, onNameClick }) 
       <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition">
         <button 
           onClick={(e) => { e.stopPropagation(); onEdit(profile); }}
-          className="w-7 h-7 bg-black/60 text-white hover:text-blue-400 transition flex items-center justify-center"
+          className="w-6 h-6 bg-black/60 text-white hover:text-blue-400 transition flex items-center justify-center rounded"
+          title="Edit"
         >
           <EditIcon />
         </button>
         <button 
           onClick={(e) => { e.stopPropagation(); onDelete(profile.id); }}
-          className="w-7 h-7 bg-black/60 text-white hover:text-red-500 transition flex items-center justify-center"
+          className="w-6 h-6 bg-black/60 text-white hover:text-red-500 transition flex items-center justify-center rounded"
+          title="Delete"
         >
           <DeleteIcon />
         </button>

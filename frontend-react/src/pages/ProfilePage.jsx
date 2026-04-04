@@ -5,33 +5,31 @@ import ProfileModal from '../components/ProfileModal';
 import SlideshowModal from '../components/SlideshowModal';
 
 // SVG иконки
-
-const EditIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M17 3l4 4-7 7H10v-4l7-7z" />
-    <path d="M4 20h16" />
+const EmailIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <rect x="2" y="4" width="20" height="16" rx="2" />
+    <path d="M22 7l-10 7L2 7" />
   </svg>
 );
 
-const DeleteIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M4 7h16M10 11v6M14 11v6M5 7l1 13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-13" />
-    <path d="M9 4h6" />
+const PhoneIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
   </svg>
 );
 
-const AddPhotoIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-    <circle cx="12" cy="13" r="4" />
-    <line x1="12" y1="8" x2="12" y2="18" />
-    <line x1="8" y1="13" x2="16" y2="13" />
+const HairIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M12 2c-3.5 0-6 2.5-6 6 0 4 3 7 6 7s6-3 6-7c0-3.5-2.5-6-6-6z" />
+    <path d="M12 15v5" />
+    <path d="M9 20h6" />
   </svg>
 );
 
-const StarIcon = ({ filled }) => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+const BriefcaseIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
   </svg>
 );
 
@@ -40,89 +38,65 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [photos, setPhotos] = useState([]);
+  const [videos, setVideos] = useState([]);
+  const [tags, setTags] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('photos');
   const [slideshowOpen, setSlideshowOpen] = useState(false);
-  const [currentPhotos, setCurrentPhotos] = useState([]);
+  const [currentMedia, setCurrentMedia] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isVideoSlideshow, setIsVideoSlideshow] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [locations, setLocations] = useState([]);
   const [platforms, setPlatforms] = useState([]);
+  const [professions, setProfessions] = useState([]);
+  const [companies, setCompanies] = useState([]);
+  const [connections, setConnections] = useState([]);
+  const [hoverVideo, setHoverVideo] = useState({});
 
   useEffect(() => {
-    loadProfile();
-    loadLocationsPlatforms();
+    loadAllData();
   }, [id]);
 
-  const loadProfile = async () => {
+  const loadAllData = async () => {
     try {
       setLoading(true);
-      const [profileRes, photosRes] = await Promise.all([
+      const [profileRes, photosRes, videosRes, tagsRes, locationsRes, platformsRes, professionsRes, companiesRes, connectionsRes] = await Promise.all([
         profileApi.get(id),
         photoApi.getByProfile(id),
+        fetch(`http://localhost:8000/api/v1/videos/?profile_id=${id}`).then(r => r.json()),
+        fetch(`http://localhost:8000/api/v1/photo-tags/?profile_id=${id}`).then(r => r.json()),
+        fetch('http://localhost:8000/api/v1/locations/').then(r => r.json()),
+        fetch('http://localhost:8000/api/v1/platforms/').then(r => r.json()),
+        fetch('http://localhost:8000/api/v1/professions/').then(r => r.json()),
+        fetch('http://localhost:8000/api/v1/companies/').then(r => r.json()),
+        fetch(`http://localhost:8000/api/v1/connections/${id}`).then(r => r.json()),
       ]);
+      
       setProfile(profileRes.data);
       setPhotos(photosRes.data || []);
+      setVideos(videosRes || []);
+      setTags(tagsRes || []);
+      setLocations(locationsRes);
+      setPlatforms(platformsRes);
+      setProfessions(professionsRes);
+      setCompanies(companiesRes);
+      setConnections(connectionsRes);
     } catch (error) {
-      console.error('Error loading profile:', error);
+      console.error('Error loading data:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const loadLocationsPlatforms = async () => {
-    try {
-      const [locationsRes, platformsRes] = await Promise.all([
-        fetch('http://localhost:8000/api/v1/locations/').then(r => r.json()),
-        fetch('http://localhost:8000/api/v1/platforms/').then(r => r.json()),
-      ]);
-      setLocations(locationsRes);
-      setPlatforms(platformsRes);
-    } catch (error) {
-      console.error('Error loading data:', error);
-    }
+  const openSlideshow = (media, startIndex = 0, isVideo = false) => {
+    setCurrentMedia(media);
+    setCurrentIndex(startIndex);
+    setIsVideoSlideshow(isVideo);
+    setSlideshowOpen(true);
   };
 
-  // Открытие слайд-шоу с определенного индекса
-  const openSlideshow = (startIndex = 0) => {
-    if (photos.length > 0) {
-      setCurrentPhotos(photos);
-      setCurrentIndex(startIndex);
-      setSlideshowOpen(true);
-    }
-  };
-
-  // Установка аватара
-  const setAsAvatar = async (photoId) => {
-    try {
-      const response = await fetch(`http://localhost:8000/api/v1/photos/profile/${id}/avatar/${photoId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      if (response.ok) {
-        await loadProfile();
-      }
-    } catch (error) {
-      console.error('Error setting avatar:', error);
-    }
-  };
-
-  const handleEditProfile = () => {
-    setModalOpen(true);
-  };
-
-  const handleDeleteProfile = async () => {
-    if (confirm('Вы уверены, что хотите удалить этот профиль?')) {
-      try {
-        await profileApi.delete(id);
-        navigate('/');
-      } catch (error) {
-        console.error('Error deleting profile:', error);
-        alert('Ошибка удаления профиля');
-      }
-    }
-  };
-
-  const handleSaveProfile = async (profileData, linksData, photosFiles) => {
+  const handleUpdateProfile = async (profileData, linksData, photos, videos, professionId, companyId, connections) => {
     try {
       await profileApi.update(id, profileData);
       
@@ -131,14 +105,14 @@ const ProfilePage = () => {
           await fetch('http://localhost:8000/api/v1/links/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...link, profile_id: parseInt(id) }),
+            body: JSON.stringify({ ...link, profile_id: parseInt(id) })
           });
         }
       }
       
-      if (photosFiles && photosFiles.length > 0) {
+      if (photos && photos.length > 0) {
         const formData = new FormData();
-        photosFiles.forEach(file => formData.append('files', file));
+        photos.forEach(f => formData.append('files', f));
         formData.append('profile_id', id);
         await fetch('http://localhost:8000/api/v1/photos/multiple/', {
           method: 'POST',
@@ -146,40 +120,66 @@ const ProfilePage = () => {
         });
       }
       
-      await loadProfile();
+      if (videos && videos.length > 0) {
+        const formData = new FormData();
+        videos.forEach(f => formData.append('files', f));
+        formData.append('profile_id', id);
+        await fetch('http://localhost:8000/api/v1/videos/multiple/', {
+          method: 'POST',
+          body: formData,
+        });
+      }
+      
+      if (professionId) {
+        await fetch('http://localhost:8000/api/v1/professions/profile/employment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            profile_id: parseInt(id),
+            profession_id: parseInt(professionId),
+            company_id: companyId ? parseInt(companyId) : null,
+            is_current: true
+          })
+        });
+      }
+      
+      for (const conn of connections) {
+        if (conn.profile_id && conn.relation_type) {
+          await fetch('http://localhost:8000/api/v1/connections/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              profile_id: parseInt(id),
+              connected_profile_id: parseInt(conn.profile_id),
+              relation_type: conn.relation_type
+            })
+          });
+        }
+      }
+      
+      await loadAllData();
       setModalOpen(false);
     } catch (error) {
-      console.error('Error saving profile:', error);
+      console.error('Error updating profile:', error);
       throw error;
-    }
-  };
-
-  const handlePhotoUpload = async (e) => {
-    if (e.target.files.length) {
-      const formData = new FormData();
-      Array.from(e.target.files).forEach(f => formData.append('files', f));
-      formData.append('profile_id', id);
-      await fetch('http://localhost:8000/api/v1/photos/multiple/', {
-        method: 'POST',
-        body: formData,
-      });
-      await loadProfile();
     }
   };
 
   const fullName = profile ? [profile.last_name, profile.first_name, profile.middle_name].filter(Boolean).join(' ') || 'Без имени' : '';
   const avatarPhoto = photos.find(p => p.is_avatar) || photos[0];
-  const avatarIndex = photos.findIndex(p => p.is_avatar) || 0;
-  const location = profile?.current_location;
-  const fullLocation = location ? [location.name, location.region?.name, location.region?.country?.name].filter(Boolean).join(', ') : '';
-
-  const formatBirthDate = () => {
-    if (!profile) return '';
-    const { birth_year, birth_month, birth_day } = profile;
-    if (birth_year && birth_month && birth_day) return `${birth_year}-${String(birth_month).padStart(2, '0')}-${String(birth_day).padStart(2, '0')}`;
-    if (birth_year && birth_month) return `${birth_year}-${String(birth_month).padStart(2, '0')}`;
-    if (birth_year) return `${birth_year}`;
-    return '';
+  const profession = profile?.professions?.[0];
+  const hairColor = profile?.hair_color;
+  
+  const getHairColorStyle = () => {
+    if (!hairColor) return { backgroundColor: '#333' };
+    const colorMap = {
+      'блондин': '#F5D7B3',
+      'брюнет': '#3C2415',
+      'шатен': '#8B5A2B',
+      'рыжий': '#D4561E',
+      'черный': '#1A1A1A',
+    };
+    return { backgroundColor: colorMap[hairColor.toLowerCase()] || hairColor };
   };
 
   if (loading) {
@@ -211,144 +211,220 @@ const ProfilePage = () => {
           <button onClick={() => navigate('/')} className="text-sm text-gray-400 hover:text-white transition">← НАЗАД</button>
           <h1 className="text-sm font-light tracking-wider text-white">GRAPHSOCIAL</h1>
           <div className="flex gap-2">
-            <button onClick={handleEditProfile} className="p-1.5 text-gray-400 hover:text-white transition"><EditIcon /></button>
-            <button onClick={handleDeleteProfile} className="p-1.5 text-gray-400 hover:text-red-500 transition"><DeleteIcon /></button>
+            <button onClick={() => setModalOpen(true)} className="p-1.5 text-gray-400 hover:text-white transition">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3l4 4-7 7H10v-4l7-7z"/><path d="M4 20h16"/></svg>
+            </button>
+            <button onClick={async () => { if (confirm('Вы уверены?')) { await profileApi.delete(id); navigate('/'); } }} className="p-1.5 text-gray-400 hover:text-red-500 transition">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-13"/><path d="M9 4h6"/></svg>
+            </button>
           </div>
         </div>
       </header>
 
       <main>
         <div className="max-w-4xl mx-auto">
-        <div className="border-b border-gray-800 p-6">
-          <div className="flex gap-6">
-            <div 
-              className="w-24 h-24 rounded-full overflow-hidden cursor-pointer bg-gray-900 flex-shrink-0 border border-gray-700"
-              onClick={() => openSlideshow(avatarIndex)}
-            >
-              {avatarPhoto ? (
-                <img 
-                  src={`http://localhost:8000${avatarPhoto.url}`} 
-                  alt={fullName}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-2xl font-light text-gray-600">
-                  {fullName.slice(0, 2).toUpperCase()}
+          {/* Profile Header */}
+          <div className="border-b border-gray-800 p-6">
+            <div className="flex gap-6">
+              <div className="w-24 h-24 rounded-full overflow-hidden cursor-pointer bg-gray-900 flex-shrink-0" onClick={() => photos.length > 0 && openSlideshow(photos, 0, false)}>
+                {avatarPhoto ? (
+                  <img src={`http://localhost:8000${avatarPhoto.url}`} alt={fullName} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-2xl font-light text-gray-600">{fullName.slice(0, 2).toUpperCase()}</div>
+                )}
+              </div>
+              
+              <div className="flex-1">
+                <h1 className="text-xl font-light mb-2">{fullName}</h1>
+                
+                {/* Отдельные строки с SVG иконками */}
+                <div className="text-xs text-gray-500 space-y-1">
+                  <div className="flex items-center gap-2">
+                    {profile.sex === 'male' ? '♂ Male' : '♀ Female'}
+                  </div>
+                  
+                  {profile.email && (
+                    <div className="flex items-center gap-2">
+                      <EmailIcon />
+                      <span>{profile.email}</span>
+                    </div>
+                  )}
+                  
+                  {profile.phone && (
+                    <div className="flex items-center gap-2">
+                      <PhoneIcon />
+                      <span>{profile.phone}</span>
+                    </div>
+                  )}
+                  
+                  {hairColor && (
+                    <div className="flex items-center gap-2">
+                      <HairIcon />
+                      <span className="inline-block w-3 h-3 rounded-full" style={getHairColorStyle()} />
+                      <span>{hairColor}</span>
+                    </div>
+                  )}
+                  
+                  {profession && (
+                    <div className="flex items-center gap-2">
+                      <BriefcaseIcon />
+                      <span>{profession.name}{profession.company_name ? ` @ ${profession.company_name}` : ''}</span>
+                    </div>
+                  )}
                 </div>
+                
+                <div className="flex gap-4 mt-3">
+                  <div className="text-center"><div className="text-sm font-light">{photos.length}</div><div className="text-[10px] text-gray-600">PHOTOS</div></div>
+                  <div className="text-center"><div className="text-sm font-light">{videos.length}</div><div className="text-[10px] text-gray-600">VIDEOS</div></div>
+                  <div className="text-center"><div className="text-sm font-light">{tags.length}</div><div className="text-[10px] text-gray-600">TAGS</div></div>
+                  <div className="text-center"><div className="text-sm font-light">{profile.links?.length || 0}</div><div className="text-[10px] text-gray-600">LINKS</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Connections Section - Avatar chips */}
+          {connections.length > 0 && (
+            <div className="border-b border-gray-800 p-4">
+              <h2 className="text-xs font-light tracking-wider text-gray-500 mb-3">CONNECTIONS</h2>
+              <div className="flex gap-3 flex-wrap">
+                {connections.map(conn => (
+                  <div key={conn.connected_profile.id} className="text-center cursor-pointer hover:opacity-80" onClick={() => navigate(`/profile/${conn.connected_profile.id}`)}>
+                    <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-800 mx-auto mb-1">
+                      {conn.connected_profile.photos?.[0] ? (
+                        <img src={`http://localhost:8000${conn.connected_profile.photos[0].url}`} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-xs">{conn.connected_profile.first_name?.[0]}{conn.connected_profile.last_name?.[0]}</div>
+                      )}
+                    </div>
+                    <div className="text-[10px] text-gray-400">{conn.relation_type}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Tabs */}
+          <div className="flex border-b border-gray-800">
+            <button className={`px-6 py-3 text-xs ${activeTab === 'photos' ? 'text-white border-b border-white' : 'text-gray-500'}`} onClick={() => setActiveTab('photos')}>PHOTOS</button>
+            <button className={`px-6 py-3 text-xs ${activeTab === 'videos' ? 'text-white border-b border-white' : 'text-gray-500'}`} onClick={() => setActiveTab('videos')}>VIDEOS</button>
+            <button className={`px-6 py-3 text-xs ${activeTab === 'tags' ? 'text-white border-b border-white' : 'text-gray-500'}`} onClick={() => setActiveTab('tags')}>TAGGED</button>
+          </div>
+
+          {/* Photos Gallery */}
+          {activeTab === 'photos' && (
+            <div className="p-4">
+              {photos.length > 0 ? (
+                <div className="columns-2 md:columns-3 gap-2 space-y-2">
+                  {photos.map((photo, idx) => (
+                    <div key={photo.id} className="relative group break-inside-avoid cursor-pointer" onClick={() => openSlideshow(photos, idx, false)}>
+                      <img src={`http://localhost:8000${photo.url}`} alt="Фото" className="w-full h-auto object-cover" />
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 opacity-0 group-hover:opacity-100 transition">
+                        <div className="flex gap-2 text-[10px] text-gray-300">
+                          {photo.season && <span>🌸 {photo.season.name}</span>}
+                          {photo.daytime && <span>☀️ {photo.daytime.name}</span>}
+                          {photo.event && <span>🎉 {photo.event.name}</span>}
+                          {photo.clothes?.length > 0 && <span>👕 {photo.clothes.length}</span>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-gray-600 text-sm">Нет фотографий</div>
               )}
             </div>
-            
-            <div className="flex-1">
-              <h1 className="text-xl font-light mb-2">{fullName}</h1>
-              <div className="flex flex-col gap-1 text-xs text-gray-500 mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="w-4">{profile.sex === 'male' ? '♂' : '♀'}</span>
-                  <span>{profile.sex === 'male' ? 'Male' : 'Female'}</span>
-                </div>
-                {formatBirthDate() && (
-                  <div className="flex items-center gap-2">
-                    <span className="w-4">📅</span>
-                    <span>{formatBirthDate()}</span>
-                  </div>
-                )}
-                {fullLocation && (
-                  <div className="flex items-center gap-2">
-                    <span className="w-4">📍</span>
-                    <span className="truncate">{fullLocation}</span>
-                  </div>
-                )}
-              </div>
-              <div className="flex gap-4">
-                <div className="text-center">
-                  <div className="text-sm font-light">{photos.length}</div>
-                  <div className="text-[10px] text-gray-600">PHOTOS</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-sm font-light">{profile.links?.length || 0}</div>
-                  <div className="text-[10px] text-gray-600">LINKS</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {profile.links?.length > 0 && (
-          <div className="border-b border-gray-800 p-6">
-            <h2 className="text-xs font-light tracking-wider text-gray-500 mb-3">SOCIAL</h2>
-            <div className="flex gap-3 flex-wrap">
-              {profile.links.map(link => (
-                <a 
-                  key={link.id}
-                  href={link.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 bg-gray-900 text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition"
-                >
-                  <span>🔗</span>
-                  <span>{link.platform.name}</span>
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xs font-light tracking-wider text-gray-500">PHOTOS</h2>
-            <button 
-              onClick={() => document.getElementById('photoUpload').click()}
-              className="text-gray-400 hover:text-white transition"
-            >
-              <AddPhotoIcon />
-            </button>
-            <input id="photoUpload" type="file" multiple accept="image/*" className="hidden" onChange={handlePhotoUpload} />
-          </div>
-          {photos.length > 0 ? (
-            <div className="columns-2 md:columns-3 gap-2 space-y-2">
-              {photos.map((photo, idx) => (
-                <div key={photo.id} className="relative group break-inside-avoid">
-                  <div 
-                    className="cursor-pointer overflow-hidden bg-gray-900"
-                    onClick={() => openSlideshow(idx)}
-                  >
-                    <img 
-                      src={`http://localhost:8000${photo.url}`} 
-                      alt="Фото"
-                      className="w-full h-auto object-cover hover:opacity-80 transition"
-                    />
-                  </div>
-                  <button 
-                    onClick={() => setAsAvatar(photo.id)}
-                    className={`absolute top-2 right-2 p-1.5 ${photo.is_avatar ? 'bg-yellow-500' : 'bg-black/60'} text-white hover:bg-yellow-500 transition rounded-full`}
-                    title="Set as avatar"
-                  >
-                    <StarIcon filled={photo.is_avatar} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12 text-gray-600 text-sm">Нет фотографий</div>
           )}
-        </div>
+
+          {/* Videos Gallery - with hover autoplay */}
+          {activeTab === 'videos' && (
+            <div className="p-4">
+              {videos.length > 0 ? (
+                <div className="columns-2 md:columns-3 gap-2 space-y-2">
+                  {videos.map((video, idx) => (
+                    <div 
+                      key={video.id} 
+                      className="relative group break-inside-avoid cursor-pointer" 
+                      onClick={() => openSlideshow(videos, idx, true)}
+                      onMouseEnter={() => setHoverVideo(prev => ({ ...prev, [idx]: true }))}
+                      onMouseLeave={() => setHoverVideo(prev => ({ ...prev, [idx]: false }))}
+                    >
+                      <video 
+                        src={`http://localhost:8000${video.url}`} 
+                        className="w-full h-auto object-cover"
+                        muted
+                        loop
+                        playsInline
+                        autoPlay={hoverVideo[idx]}
+                      />
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 opacity-0 group-hover:opacity-100 transition">
+                        <div className="text-[10px] text-gray-300">🎬 {Math.floor(video.duration / 60)}:{String(video.duration % 60).padStart(2, '0')}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-gray-600 text-sm">Нет видео</div>
+              )}
+            </div>
+          )}
+
+          {/* Tagged Photos Gallery */}
+          {activeTab === 'tags' && (
+            <div className="p-4">
+              {tags.length > 0 ? (
+                <div className="columns-2 md:columns-3 gap-2 space-y-2">
+                  {tags.map((tag) => (
+                    <div key={tag.id} className="relative group break-inside-avoid cursor-pointer" onClick={() => openSlideshow([tag.photo], 0, false)}>
+                      {tag.photo?.url ? (
+                        <img src={`http://localhost:8000${tag.photo.url}`} alt="Tagged" className="w-full h-auto object-cover" />
+                      ) : (
+                        <div className="w-full aspect-square bg-gray-800 flex items-center justify-center text-gray-600 text-xs">NO IMAGE</div>
+                      )}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                        <div className="flex items-center gap-2 text-[10px] text-gray-300">
+                          <div 
+                            className="w-5 h-5 rounded-full overflow-hidden bg-gray-700 cursor-pointer hover:opacity-80"
+                            onClick={(e) => { e.stopPropagation(); navigate(`/profile/${tag.profile_id}`); }}
+                          >
+                            {tag.profile?.photos?.[0] ? (
+                              <img src={`http://localhost:8000${tag.profile.photos[0].url}`} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-[8px]">{tag.profile?.first_name?.[0]}</div>
+                            )}
+                          </div>
+                          <span>Tagged by {tag.profile?.first_name} at ({tag.x}, {tag.y})</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-gray-600 text-sm">Нет отметок</div>
+              )}
+            </div>
+          )}
         </div>
       </main>
 
       <ProfileModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSave={handleSaveProfile}
+        onSave={handleUpdateProfile}
         profile={profile}
         locations={locations}
         platforms={platforms}
+        professions={professions}
+        companies={companies}
       />
 
       <SlideshowModal
         isOpen={slideshowOpen}
         onClose={() => setSlideshowOpen(false)}
-        photos={currentPhotos}
+        photos={currentMedia}
         profile={profile}
         startIndex={currentIndex}
+        isVideo={isVideoSlideshow}
       />
     </div>
   );

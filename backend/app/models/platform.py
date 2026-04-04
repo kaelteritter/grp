@@ -23,6 +23,9 @@ class Platform(Base):
         nullable=False,
         unique=True,
     )
+    icon_url: Mapped[str] = mapped_column(
+        nullable=True,
+    )
 
     links = relationship(
         "Link",

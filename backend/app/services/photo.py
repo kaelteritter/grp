@@ -7,10 +7,18 @@ from sqlalchemy.orm import selectinload
 from fastapi import Form, HTTPException, UploadFile, status
 
 from app.core.storage import storage
+from app.models.daytime import DayTime
+from app.models.address import Address
 from app.models.photo import Photo
 from app.models.profile import Profile
+from app.models.season import Season
+from app.models.event import Event
 from app.schemas.photo import PhotoCreateSchema, PhotoUpdateSchema
 from app.services.profile import read_profile
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 async def create_photo(db: AsyncSession, photo_in: PhotoCreateSchema):
@@ -27,6 +35,46 @@ async def create_photo(db: AsyncSession, photo_in: PhotoCreateSchema):
                 detail=f"Профиль с ID {photo_in.profile_id} не найден"
             )
         
+        # Проверяем существование сезона (если указан)
+        if photo_in.season_id:
+            stmt = select(Season).where(Season.id == photo_in.season_id)
+            result = await db.execute(stmt)
+            if not result.scalar_one_or_none():
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Сезон с ID {photo_in.season_id} не найден"
+                )
+        
+        # Проверяем существование времени суток (если указано)
+        if photo_in.daytime_id:
+            stmt = select(DayTime).where(DayTime.id == photo_in.daytime_id)
+            result = await db.execute(stmt)
+            if not result.scalar_one_or_none():
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Время суток с ID {photo_in.daytime_id} не найдено"
+                )
+        
+        # Проверяем существование события (если указано)
+        if photo_in.event_id:
+            stmt = select(Event).where(Event.id == photo_in.event_id)
+            result = await db.execute(stmt)
+            if not result.scalar_one_or_none():
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Событие с ID {photo_in.event_id} не найдено"
+                )
+        
+        # Проверяем существование адреса (если указан)
+        if photo_in.address_id:
+            stmt = select(Address).where(Address.id == photo_in.address_id)
+            result = await db.execute(stmt)
+            if not result.scalar_one_or_none():
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Адрес с ID {photo_in.address_id} не найден"
+                )
+        
         # Если это аватар, снимаем флаг is_avatar с других фото профиля
         if photo_in.is_avatar:
             stmt = select(Photo).where(Photo.profile_id == photo_in.profile_id)
@@ -42,21 +90,22 @@ async def create_photo(db: AsyncSession, photo_in: PhotoCreateSchema):
         await db.refresh(photo)
         
         # Подгружаем связанные данные
-        stmt = select(Photo).where(Photo.id == photo.id).options(selectinload(Photo.profile))
+        stmt = select(Photo).where(Photo.id == photo.id).options(
+            selectinload(Photo.profile),
+            selectinload(Photo.clothes),
+            selectinload(Photo.season),
+            selectinload(Photo.daytime),
+            selectinload(Photo.event),
+            selectinload(Photo.address)
+        )
         result = await db.execute(stmt)
         photo = result.scalar_one()
         
         return photo
         
-    except ValueError as e:
-        # Обрабатываем ошибки валидации из модели SQLAlchemy
-        await db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail=str(e)
-        )
     except IntegrityError as e:
         await db.rollback()
+        logger.error(f"IntegrityError in create_photo: {e}")
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Ошибка целостности данных при создании фотографии"
@@ -65,11 +114,11 @@ async def create_photo(db: AsyncSession, photo_in: PhotoCreateSchema):
         raise
     except Exception as e:
         await db.rollback()
+        logger.error(f"Unexpected error in create_photo: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Ошибка при создании фотографии: {str(e)}"
         )
-
 
 async def update_photo(db: AsyncSession, photo_id: int, photo_in: PhotoUpdateSchema):
     """Обновление фотографии"""
@@ -265,7 +314,7 @@ async def create_photos(db: AsyncSession, files: list[UploadFile], profile_id: i
             url=file_url,
             profile_id=profile_id,
             title=file.filename,
-            is_avatar=is_avatar
+            is_avatar=is_avatar,
         )
         
         photo = await create_photo(db, photo_in)

@@ -57,6 +57,92 @@ from app.services.photo import (
     delete_photos,
 )
 
+from app.services.address import (
+    create_address,
+    read_address,
+    read_addresses,
+    update_address,
+    delete_address
+)
+
+from app.services.company import (
+    create_company,
+    read_company,
+    read_companies,
+    update_company,
+    delete_company
+)
+
+from app.services.profession import (
+    create_profession,
+    read_profession,
+    read_professions,
+    update_profession,
+    delete_profession,
+    add_profession_to_profile,
+    get_profile_professions,
+    remove_profession_from_profile,
+)
+
+from app.services.video import (
+    create_video,
+    read_video,
+    read_videos,
+    update_video,
+    delete_video,
+    set_cover,
+    create_videos,
+)
+
+from app.services.cloth import (
+    create_cloth,
+    read_cloth,
+    read_clothes,
+    update_cloth,
+    delete_cloth,
+    add_photo_to_cloth,
+    remove_photo_from_cloth
+)
+
+from app.services.connection import (
+    add_connection,
+    remove_connection,
+    get_profile_connections
+)
+
+from app.services.event import (
+    create_event,
+    read_event,
+    read_events,
+    update_event,
+    delete_event
+)
+
+from app.services.season import (
+    create_season,
+    read_season,
+    read_seasons,
+    update_season,
+    delete_season
+)
+
+from app.services.daytime import (
+    create_daytime,
+    read_daytime,
+    read_daytimes,
+    update_daytime,
+    delete_daytime
+)
+
+from app.services.photo_tag import (
+    create_photo_tag,
+    read_photo_tag,
+    read_photo_tags,
+    update_photo_tag,
+    delete_photo_tag
+)
+
+
 __all__ = [
     # Profile
     "create_profile",
@@ -103,4 +189,70 @@ __all__ = [
     "set_avatar",
     "create_photos",
     "delete_photos",
+    # Address
+    "create_address",
+    "read_address",
+    "read_addresses",
+    "update_address",
+    "delete_address",
+    # Company
+    "create_company",
+    "read_company",
+    "read_companies",
+    "update_company",
+    "delete_company",
+    # Profession
+    "create_profession",
+    "read_profession",
+    "read_professions",
+    "update_profession",
+    "delete_profession",
+    "add_profession_to_profile",
+    "get_profile_professions",
+    "remove_profession_from_profile",
+    # Video
+    "create_video",
+    "create_videos",
+    "read_video",
+    "read_videos",
+    "update_video",
+    "delete_video",
+    "set_cover",
+    # Cloth
+    "create_cloth",
+    "read_cloth",
+    "read_clothes",
+    "update_cloth",
+    "delete_cloth",
+    "add_photo_to_cloth",
+    "remove_photo_from_cloth",
+    # Connection
+    "add_connection",
+    "remove_connection",
+    "get_profile_connections",
+    # Event
+    "create_event",
+    "read_event",
+    "read_events",
+    "update_event",
+    "delete_event",
+    # Season
+    "create_season",
+    "read_season",
+    "read_seasons",
+    "update_season",
+    "delete_season",
+    # DayTime
+    "create_daytime",
+    "read_daytime",
+    "read_daytimes",
+    "update_daytime", 
+    "delete_daytime",
+    # PhotoTag
+    "create_photo_tag",
+    "read_photo_tag",
+    "read_photo_tags",
+    "update_photo_tag",
+    "delete_photo_tag",
+
 ]
