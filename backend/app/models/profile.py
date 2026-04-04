@@ -7,6 +7,7 @@ from sqlalchemy import CheckConstraint, DateTime, Enum, ForeignKey, Integer, Str
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+from app.models.profession import employments
 
 
 class Gender(str, enum.Enum):
@@ -64,6 +65,13 @@ class Profile(Base):
         cascade="all, delete-orphan",
         lazy="selectin",
         order_by="Photo.sort_order"
+    )
+
+    professions = relationship(
+        "Profession",
+        secondary=employments,
+        back_populates="profiles",
+        lazy="selectin"
     )
 
     created_at: Mapped[datetime] = mapped_column(

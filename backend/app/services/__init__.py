@@ -73,6 +73,17 @@ from app.services.company import (
     delete_company
 )
 
+from app.services.profession import (
+    create_profession,
+    read_profession,
+    read_professions,
+    update_profession,
+    delete_profession,
+    add_profession_to_profile,
+    get_profile_professions,
+    remove_profession_from_profile,
+)
+
 __all__ = [
     # Profile
     "create_profile",
@@ -131,4 +142,13 @@ __all__ = [
     "read_companies",
     "update_company",
     "delete_company",
+    # Profession
+    "create_profession",
+    "read_profession",
+    "read_professions",
+    "update_profession",
+    "delete_profession",
+    "add_profession_to_profile",
+    "get_profile_professions",
+    "remove_profession_from_profile",
 ]

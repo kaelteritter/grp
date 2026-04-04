@@ -28,10 +28,10 @@ class Company(Base):
         nullable=False
     )
     
-    # Связь многие-ко-многим с адресами
     addresses = relationship(
         "Address",
         secondary=company_address_association,
         back_populates="companies",
         lazy="selectin"
     )
+

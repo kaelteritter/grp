@@ -8,5 +8,17 @@ from app.models.link import Link
 from app.models.photo import Photo
 from app.models.address import Address
 from app.models.company import Company
+from app.models.profession import Profession
 
-__all__ = ["Profile", "Country", "Region", "Location", "Platform", "Link", "Photo", "Address", "Company"]
+__all__ = [
+    "Profile",
+    "Country",
+    "Region",
+    "Location",
+    "Platform",
+    "Link",
+    "Photo",
+    "Address",
+    "Company",
+    "Profession",
+]
