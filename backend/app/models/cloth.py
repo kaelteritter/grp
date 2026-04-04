@@ -36,6 +36,10 @@ class Cloth(Base):
         String(255), 
         nullable=False
     )
+    cover_url: Mapped[str] = mapped_column(
+        String(500),
+        nullable=True
+    )
     
     # Связь многие-ко-многим с фото
     photos = relationship(

@@ -2,7 +2,6 @@ from typing import Optional, List
 from datetime import datetime
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 
-from app.schemas.cloth import ClothForPhotoReadSchema
 from app.schemas.season import SeasonReadSchema
 from app.schemas.daytime import DayTimeReadSchema
 from app.schemas.event import EventReadSchema
@@ -52,7 +51,7 @@ class PhotoReadSchema(PhotoBaseSchema):
     id: int
     profile_id: int
     created_at: datetime
-    clothes: Optional[List[ClothForPhotoReadSchema]] = []
+    # clothes убрано - будем получать отдельным эндпоинтом
     season: Optional[SeasonReadSchema] = None
     daytime: Optional[DayTimeReadSchema] = None
     event: Optional[EventReadSchema] = None
@@ -73,3 +72,16 @@ class PhotoForProfileReadSchema(BaseModel):
     daytime: Optional[DayTimeReadSchema] = None
     event: Optional[EventReadSchema] = None
     address: Optional[AddressReadSchema] = None
+
+
+# Простая схема для использования внутри Cloth
+class SimplePhotoSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: int
+    url: str
+    title: Optional[str] = None
+    is_avatar: bool
+    sort_order: int
+    created_at: datetime
+    rating: Optional[float] = None

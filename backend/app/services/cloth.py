@@ -13,65 +13,6 @@ from app.schemas.cloth import ClothCreateSchema, ClothUpdateSchema
 logger = logging.getLogger(__name__)
 
 
-async def create_cloth(db: AsyncSession, cloth_in: ClothCreateSchema):
-    """Создание одежды"""
-    try:
-        # Создаем объект одежды
-        cloth = Cloth(
-            name=cloth_in.name,
-            color=cloth_in.color,
-            material=cloth_in.material
-        )
-        
-        db.add(cloth)
-        await db.commit()
-        await db.refresh(cloth)
-        
-        # Добавляем связи с фото (если указаны)
-        if cloth_in.photo_ids:
-            # Получаем фото
-            stmt = select(Photo).where(Photo.id.in_(cloth_in.photo_ids))
-            result = await db.execute(stmt)
-            photos = result.scalars().all()
-            
-            if len(photos) != len(cloth_in.photo_ids):
-                found_ids = [p.id for p in photos]
-                missing_ids = set(cloth_in.photo_ids) - set(found_ids)
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Фото с ID {list(missing_ids)} не найдены"
-                )
-            
-            # Добавляем связи через append
-            for photo in photos:
-                cloth.photos.append(photo)
-            
-            await db.commit()
-            await db.refresh(cloth)
-        
-        # Подсчитываем количество фото
-        cloth.photo_count = len(cloth.photos)
-        
-        return cloth
-        
-    except IntegrityError as e:
-        await db.rollback()
-        logger.error(f"IntegrityError in create_cloth: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Ошибка целостности данных при создании элемента одежды"
-        )
-    except HTTPException:
-        raise
-    except Exception as e:
-        await db.rollback()
-        logger.error(f"Unexpected error in create_cloth: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Ошибка при создании элемента одежды: {str(e)}"
-        )
-
-
 async def read_cloth(db: AsyncSession, cloth_id: int):
     """Получение элемента одежды по ID"""
     stmt = select(Cloth).where(Cloth.id == cloth_id).options(
@@ -120,6 +61,61 @@ async def read_clothes(
     
     return clothes
 
+async def create_cloth(db: AsyncSession, cloth_in: ClothCreateSchema):
+    """Создание одежды"""
+    try:
+        # Создаем объект одежды
+        cloth = Cloth(
+            name=cloth_in.name,
+            color=cloth_in.color,
+            material=cloth_in.material,
+            cover_url=cloth_in.cover_url
+        )
+        
+        db.add(cloth)
+        await db.commit()
+        await db.refresh(cloth)
+        
+        # Добавляем связи с фото (если указаны)
+        if cloth_in.photo_ids:
+            stmt = select(Photo).where(Photo.id.in_(cloth_in.photo_ids))
+            result = await db.execute(stmt)
+            photos = result.scalars().all()
+            
+            if len(photos) != len(cloth_in.photo_ids):
+                found_ids = [p.id for p in photos]
+                missing_ids = set(cloth_in.photo_ids) - set(found_ids)
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Фото с ID {list(missing_ids)} не найдены"
+                )
+            
+            cloth.photos = photos
+            await db.commit()
+            await db.refresh(cloth)
+        
+        # Подсчитываем количество фото
+        cloth.photo_count = len(cloth.photos)
+        
+        return cloth
+        
+    except IntegrityError as e:
+        await db.rollback()
+        logger.error(f"IntegrityError in create_cloth: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Ошибка целостности данных при создании элемента одежды"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Unexpected error in create_cloth: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Ошибка при создании элемента одежды: {str(e)}"
+        )
+
 
 async def update_cloth(
     db: AsyncSession,
@@ -139,18 +135,17 @@ async def update_cloth(
             cloth.color = update_data["color"]
         if "material" in update_data and update_data["material"] is not None:
             cloth.material = update_data["material"]
+        if "cover_url" in update_data:
+            cloth.cover_url = update_data["cover_url"]
         
         await db.commit()
         await db.refresh(cloth)
         
         # Обновляем связи с фото (если указаны)
         if "photo_ids" in update_data:
-            # Очищаем существующие связи
-            cloth.photos = []
-            await db.flush()
-            
-            if update_data["photo_ids"]:
-                # Получаем новые фото
+            if update_data["photo_ids"] is None or len(update_data["photo_ids"]) == 0:
+                cloth.photos = []
+            else:
                 stmt = select(Photo).where(Photo.id.in_(update_data["photo_ids"]))
                 result = await db.execute(stmt)
                 photos = result.scalars().all()
@@ -162,13 +157,10 @@ async def update_cloth(
                         status_code=status.HTTP_404_NOT_FOUND,
                         detail=f"Фото с ID {list(missing_ids)} не найдены"
                     )
-                
-                # Добавляем новые связи
-                for photo in photos:
-                    cloth.photos.append(photo)
-            
-            await db.commit()
-            await db.refresh(cloth)
+                cloth.photos = photos
+        
+        await db.commit()
+        await db.refresh(cloth)
         
         # Подсчитываем количество фото
         cloth.photo_count = len(cloth.photos)
@@ -191,7 +183,6 @@ async def update_cloth(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Ошибка при обновлении элемента одежды: {str(e)}"
         )
-
 
 async def delete_cloth(db: AsyncSession, cloth_id: int):
     """Удаление элемента одежды"""
