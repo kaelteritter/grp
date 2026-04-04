@@ -1,6 +1,8 @@
-from typing import Optional
+from typing import List, Optional
 from datetime import datetime
 from pydantic import BaseModel, Field
+
+from app.schemas.cloth import ClothForPhotoReadSchema
 
 
 class PhotoBaseSchema(BaseModel):
@@ -25,6 +27,7 @@ class PhotoReadSchema(PhotoBaseSchema):
     id: int
     profile_id: int
     created_at: datetime
+    clothes: Optional[List[ClothForPhotoReadSchema]] = []
 
 
 class PhotoForProfileReadSchema(BaseModel):
@@ -34,3 +37,4 @@ class PhotoForProfileReadSchema(BaseModel):
     is_avatar: bool
     sort_order: int
     created_at: datetime
+    clothes: Optional[List[ClothForPhotoReadSchema]] = [] 

@@ -93,6 +93,16 @@ from app.services.video import (
     set_cover
 )
 
+from app.services.cloth import (
+    create_cloth,
+    read_cloth,
+    read_clothes,
+    update_cloth,
+    delete_cloth,
+    add_photo_to_cloth,
+    remove_photo_from_cloth
+)
+
 __all__ = [
     # Profile
     "create_profile",
@@ -167,4 +177,12 @@ __all__ = [
     "update_video",
     "delete_video",
     "set_cover",
+    # Cloth
+    "create_cloth",
+    "read_cloth",
+    "read_clothes",
+    "update_cloth",
+    "delete_cloth",
+    "add_photo_to_cloth",
+    "remove_photo_from_cloth",
 ]

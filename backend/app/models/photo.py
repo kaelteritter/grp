@@ -5,6 +5,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.db.base import Base
 
+from app.models.cloth import photo_clothes
+
 
 class Photo(Base):
     """
@@ -43,8 +45,13 @@ class Photo(Base):
         nullable=False
     )
 
-    # Связь с профилем
     profile = relationship("Profile", back_populates="photos")
+    clothes = relationship(
+        "Cloth",
+        secondary=photo_clothes,
+        back_populates="photos",
+        lazy="selectin"
+    )
 
     @validates('url')
     def validate_url(self, key, url):
