@@ -76,23 +76,35 @@ async def read_profile(db: AsyncSession, profile_id: int):
     stmt = select(Profile).where(Profile.id == profile_id).options(
         selectinload(Profile.current_location).selectinload(Location.region).selectinload(Region.country),
         selectinload(Profile.links).selectinload(Link.platform),
-        selectinload(Profile.photos),
-        selectinload(Profile.videos)
+        selectinload(Profile.photos)
     )
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
 
-async def read_profiles(db: AsyncSession, skip: int = 0, limit: int = 100):
-    """Получение списка профилей"""
-    stmt = select(Profile).options(
-        selectinload(Profile.current_location).selectinload(Location.region).selectinload(Region.country),
-        selectinload(Profile.links).selectinload(Link.platform),
-        selectinload(Profile.photos),
-        selectinload(Profile.videos)
-    ).offset(skip).limit(limit).order_by(Profile.created_at.desc())
-    result = await db.execute(stmt)
-    return result.scalars().all()
+async def read_profiles(
+        db: AsyncSession,
+        skip: int = 0,
+        limit: int = 100
+):
+    """Получение списка профилей с пагинацией"""
+    try:
+        stmt = select(Profile).options(
+            selectinload(Profile.current_location).selectinload(Location.region).selectinload(Region.country),
+            selectinload(Profile.links),
+            selectinload(Profile.photos)
+        ).offset(skip).limit(limit).order_by(Profile.created_at.desc())
+
+        result = await db.execute(stmt)
+        profiles = result.scalars().all()
+
+        return profiles
+    except Exception as e:
+        print(f"Error reading profiles: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Ошибка чтения профилей: {str(e)}"
+        )
 
 
 async def update_profile(db: AsyncSession, profile_id: int, profile_in: ProfileUpdateSchema):

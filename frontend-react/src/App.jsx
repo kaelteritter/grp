@@ -51,9 +51,9 @@ function HomePage() {
         regionApi.getAll(),
         countryApi.getAll(),
         platformApi.getAll(),
-        fetch('http://localhost:8000/api/v1/professions/').then(r => r.json()),
-        fetch('http://localhost:8000/api/v1/companies/').then(r => r.json()),
-        fetch('http://localhost:8000/api/v1/addresses/').then(r => r.json()),
+        fetch('http://localhost:8000/api/v1/professions/').then(r => r.json()).catch(() => []),
+        fetch('http://localhost:8000/api/v1/companies/').then(r => r.json()).catch(() => []),
+        fetch('http://localhost:8000/api/v1/addresses/').then(r => r.json()).catch(() => []),
       ]);
       setProfiles(profilesRes.data || []);
       setLocations(locationsRes.data || []);

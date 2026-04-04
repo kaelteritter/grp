@@ -23,7 +23,7 @@ const request = async (endpoint, options = {}) => {
       console.error('API Error:', { status: response.status, data });
       throw new Error(data.detail || `HTTP error! status: ${response.status}`);
     }
-    
+
     return { data };
   } catch (error) {
     console.error('API Error:', error);
@@ -46,9 +46,9 @@ export const profileApi = {
         cleanData[key] = value;
       }
     }
-    return request('/profiles/', { 
-      method: 'POST', 
-      body: JSON.stringify(cleanData) 
+    return request('/profiles/', {
+      method: 'POST',
+      body: JSON.stringify(cleanData)
     });
   },
   update: (id, data) => {
@@ -58,9 +58,9 @@ export const profileApi = {
         cleanData[key] = value === '' ? null : value;
       }
     }
-    return request(`/profiles/${id}`, { 
-      method: 'PATCH', 
-      body: JSON.stringify(cleanData) 
+    return request(`/profiles/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(cleanData)
     });
   },
   delete: (id) => request(`/profiles/${id}`, { method: 'DELETE' }),
@@ -72,17 +72,17 @@ export const photoApi = {
     const formData = new FormData();
     files.forEach(file => formData.append('files', file));
     formData.append('profile_id', profileId);
-    
+
     const response = await fetch(`http://localhost:8000/api/v1/photos/multiple/`, {
       method: 'POST',
       body: formData,
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail || 'Upload failed');
     }
-    
+
     return response.json();
   },
   setAvatar: (profileId, photoId) => request(`/photos/profile/${profileId}/avatar/${photoId}`, { method: 'PATCH' }),
@@ -112,4 +112,3 @@ export const countryApi = {
 export const linkApi = {
   create: (data) => request('/links/', { method: 'POST', body: JSON.stringify(data) }),
 };
-

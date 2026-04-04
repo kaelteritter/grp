@@ -88,6 +88,10 @@ const ProfileCard = ({ profile, onEdit, onDelete, onAvatarClick, onNameClick }) 
       'шатен': '#8B5A2B',
       'рыжий': '#D4561E',
       'черный': '#1A1A1A',
+      'blonde': '#F5D7B3',
+      'brunette': '#3C2415',
+      'red': '#D4561E',
+      'black': '#1A1A1A',
     };
     return { backgroundColor: colorMap[hairColor.toLowerCase()] || hairColor };
   };
