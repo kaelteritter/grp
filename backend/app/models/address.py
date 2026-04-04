@@ -2,7 +2,7 @@ from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
-
+from app.models.company import company_address_association
 
 class Address(Base):
     """
@@ -31,6 +31,14 @@ class Address(Base):
     # Связь с локацией
     location = relationship(
         "Location",
+        back_populates="addresses",
+        lazy="selectin"
+    )
+
+ 
+    companies = relationship(
+        "Company",
+        secondary=company_address_association,
         back_populates="addresses",
         lazy="selectin"
     )

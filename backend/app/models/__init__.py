@@ -7,5 +7,6 @@ from app.models.platform import Platform
 from app.models.link import Link
 from app.models.photo import Photo
 from app.models.address import Address
+from app.models.company import Company
 
-__all__ = ["Profile", "Country", "Region", "Location", "Platform", "Link", "Photo", "Address"]
+__all__ = ["Profile", "Country", "Region", "Location", "Platform", "Link", "Photo", "Address", "Company"]

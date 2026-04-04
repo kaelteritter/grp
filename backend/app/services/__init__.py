@@ -65,6 +65,13 @@ from app.services.address import (
     delete_address
 )
 
+from app.services.company import (
+    create_company,
+    read_company,
+    read_companies,
+    update_company,
+    delete_company
+)
 
 __all__ = [
     # Profile
@@ -118,4 +125,10 @@ __all__ = [
     "read_addresses",
     "update_address",
     "delete_address",
+    # Company
+    "create_company",
+    "read_company",
+    "read_companies",
+    "update_company",
+    "delete_company",
 ]

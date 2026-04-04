@@ -8,7 +8,7 @@ from fastapi import Depends
 from app.core.config import settings
 from app.core.paths import STORAGE_DIR
 from app.core.database import get_db
-from app.api.v1.endpoints import profile, country, region, location, platform, link, photo, address
+from app.api.v1.endpoints import company, profile, country, region, location, platform, link, photo, address
 
 
 # ================== СОЗДАНИЕ ПРИЛОЖЕНИЯ ==================
@@ -49,6 +49,7 @@ app.include_router(platform.router, prefix="/api/v1")
 app.include_router(link.router, prefix="/api/v1")
 app.include_router(photo.router, prefix="/api/v1")
 app.include_router(address.router, prefix="/api/v1")
+app.include_router(company.router, prefix="/api/v1")
 
 print("[Main] API routers registered with prefix /api/v1")
 
