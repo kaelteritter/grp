@@ -133,6 +133,15 @@ from app.services.daytime import (
     delete_daytime
 )
 
+from app.services.photo_tag import (
+    create_photo_tag,
+    read_photo_tag,
+    read_photo_tags,
+    update_photo_tag,
+    delete_photo_tag
+)
+
+
 __all__ = [
     # Profile
     "create_profile",
@@ -236,4 +245,12 @@ __all__ = [
     "read_daytime",
     "read_daytimes",
     "update_daytime", 
+    "delete_daytime",
+    # PhotoTag
+    "create_photo_tag",
+    "read_photo_tag",
+    "read_photo_tags",
+    "update_photo_tag",
+    "delete_photo_tag",
+
 ]

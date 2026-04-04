@@ -135,6 +135,14 @@ class Profile(Base):
         lazy="selectin"
     )
 
+    photo_tags = relationship(
+        "PhotoTag",
+        back_populates="profile",
+        cascade="all, delete-orphan",
+        lazy="selectin"
+    )
+
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         default=datetime.now,

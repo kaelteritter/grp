@@ -6,6 +6,7 @@ from app.schemas.season import SeasonReadSchema
 from app.schemas.daytime import DayTimeReadSchema
 from app.schemas.event import EventReadSchema
 from app.schemas.address import AddressReadSchema
+from app.schemas.photo_tag import SimplePhotoTagSchema
 
 
 class PhotoBaseSchema(BaseModel):
@@ -51,11 +52,11 @@ class PhotoReadSchema(PhotoBaseSchema):
     id: int
     profile_id: int
     created_at: datetime
-    # clothes убрано - будем получать отдельным эндпоинтом
     season: Optional[SeasonReadSchema] = None
     daytime: Optional[DayTimeReadSchema] = None
     event: Optional[EventReadSchema] = None
     address: Optional[AddressReadSchema] = None
+    tags: Optional[List[SimplePhotoTagSchema]] = []
 
 
 class PhotoForProfileReadSchema(BaseModel):
@@ -72,7 +73,6 @@ class PhotoForProfileReadSchema(BaseModel):
     daytime: Optional[DayTimeReadSchema] = None
     event: Optional[EventReadSchema] = None
     address: Optional[AddressReadSchema] = None
-
 
 # Простая схема для использования внутри Cloth
 class SimplePhotoSchema(BaseModel):

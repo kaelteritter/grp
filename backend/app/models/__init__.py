@@ -14,6 +14,7 @@ from app.models.cloth import Cloth
 from app.models.event import Event
 from app.models.daytime import DayTime
 from app.models.season import Season
+from app.models.photo_tag import PhotoTag
 
 __all__ = [
     "Profile",
@@ -31,4 +32,5 @@ __all__ = [
     "Event",
     "DayTime",
     "Season",
+    "PhotoTag",
 ]

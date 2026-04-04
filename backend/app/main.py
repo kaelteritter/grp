@@ -13,6 +13,7 @@ from app.api.v1.endpoints import (
     company,
     connection,
     event,
+    photo_tag,
     profession,
     profile,
     country,
@@ -73,7 +74,8 @@ app.include_router(cloth.router, prefix="/api/v1")
 app.include_router(connection.router, prefix="/api/v1")
 app.include_router(season.router, prefix="/api/v1")
 app.include_router(daytime.router, prefix="/api/v1")
-app.include_router(event.router, prefix="/api/v1")  
+app.include_router(event.router, prefix="/api/v1") 
+app.include_router(photo_tag.router, prefix="/api/v1") 
 
 print("[Main] API routers registered with prefix /api/v1")
 

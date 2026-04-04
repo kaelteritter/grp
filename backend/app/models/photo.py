@@ -6,6 +6,9 @@ from app.db.base import Base
 from app.models.cloth import photo_clothes
 
 
+
+
+
 class Photo(Base):
     """
     Фотографии профиля
@@ -65,6 +68,13 @@ class Photo(Base):
     address_id: Mapped[int] = mapped_column(
         ForeignKey("addresses.id", ondelete="SET NULL"),
         nullable=True
+    )
+
+    tags = relationship(
+        "PhotoTag",
+        back_populates="photo",
+        cascade="all, delete-orphan",
+        lazy="selectin"
     )
 
     # Связи
