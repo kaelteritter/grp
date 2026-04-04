@@ -19,6 +19,7 @@ from app.api.v1.endpoints import (
     link,
     photo,
     address,
+    video,
 )
 
 
@@ -62,6 +63,7 @@ app.include_router(photo.router, prefix="/api/v1")
 app.include_router(address.router, prefix="/api/v1")
 app.include_router(company.router, prefix="/api/v1")
 app.include_router(profession.router, prefix="/api/v1")
+app.include_router(video.router, prefix="/api/v1")
 
 print("[Main] API routers registered with prefix /api/v1")
 

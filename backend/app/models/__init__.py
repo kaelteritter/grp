@@ -9,6 +9,7 @@ from app.models.photo import Photo
 from app.models.address import Address
 from app.models.company import Company
 from app.models.profession import Profession
+from app.models.video import Video
 
 __all__ = [
     "Profile",
@@ -21,4 +22,5 @@ __all__ = [
     "Address",
     "Company",
     "Profession",
+    "Video",
 ]

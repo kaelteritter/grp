@@ -84,6 +84,15 @@ from app.services.profession import (
     remove_profession_from_profile,
 )
 
+from app.services.video import (
+    create_video,
+    read_video,
+    read_videos,
+    update_video,
+    delete_video,
+    set_cover
+)
+
 __all__ = [
     # Profile
     "create_profile",
@@ -151,4 +160,11 @@ __all__ = [
     "add_profession_to_profile",
     "get_profile_professions",
     "remove_profession_from_profile",
+    # Video
+    "create_video",
+    "read_video",
+    "read_videos",
+    "update_video",
+    "delete_video",
+    "set_cover",
 ]

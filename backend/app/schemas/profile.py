@@ -7,6 +7,7 @@ from datetime import datetime
 
 from app.schemas.location import LocationReadSchema
 from app.schemas.link import LinkReadSchema
+from app.schemas.video import VideoForProfileReadSchema
 from backend.app.schemas.photo import PhotoForProfileReadSchema
 
 
@@ -67,6 +68,7 @@ class ProfileReadSchema(ProfileBaseSchema):
     current_location: Optional[LocationReadSchema] = None
     links: Optional[List[LinkReadSchema]] = []
     photos: Optional[List[PhotoForProfileReadSchema]] = []
+    videos: Optional[List[VideoForProfileReadSchema]] = [] 
     
 
 

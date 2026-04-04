@@ -10,6 +10,7 @@ from app.db.base import Base
 from app.models.profession import employments
 
 
+
 class Gender(str, enum.Enum):
     MALE = "male"
     FEMALE = "female"
@@ -72,6 +73,14 @@ class Profile(Base):
         secondary=employments,
         back_populates="profiles",
         lazy="selectin"
+    )
+
+    videos = relationship(
+        "Video",
+        back_populates="profile",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+        order_by="Video.sort_order"
     )
 
     created_at: Mapped[datetime] = mapped_column(
