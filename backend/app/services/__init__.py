@@ -52,7 +52,9 @@ from app.services.photo import (
     read_photos,
     update_photo,
     delete_photo,
-    set_avatar
+    set_avatar,
+    create_photos,
+    delete_photos,
 )
 
 __all__ = [
@@ -98,5 +100,7 @@ __all__ = [
     "read_photos",
     "update_photo",
     "delete_photo",
-    "set_avatar"
+    "set_avatar",
+    "create_photos",
+    "delete_photos",
 ]

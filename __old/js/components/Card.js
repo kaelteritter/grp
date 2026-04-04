@@ -37,7 +37,9 @@ class Card {
         let avatarPhoto = null;
         if (profile.photos && profile.photos.length > 0) {
             avatarPhoto = profile.photos.find(p => p.is_avatar) || profile.photos[0];
-            return `<img src="${avatarPhoto.url}" alt="${Utils.escapeHtml(fullName)}" loading="lazy">`;
+            // Используем полный URL бэкенда
+            const photoUrl = `http://localhost:8000${avatarPhoto.url}`;
+            return `<img src="${photoUrl}" alt="${Utils.escapeHtml(fullName)}" loading="lazy">`;
         }
         
         const initials = Utils.getAvatarInitials(fullName);

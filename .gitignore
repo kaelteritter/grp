@@ -17,6 +17,7 @@ build/
 .idea/
 *.swp
 *.swo
+pyrightconfig.json
 
 # OS
 .DS_Store
@@ -33,3 +34,12 @@ pytest.ini
 .prompt.fast
 
 uploads/
+
+
+# Storage
+storage/
+uploads/
+
+# Local database
+*.db
+*.db-journal

@@ -4,11 +4,13 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from fastapi import HTTPException, status
+from fastapi import Form, HTTPException, UploadFile, status
 
+from app.core.storage import storage
 from app.models.photo import Photo
 from app.models.profile import Profile
 from app.schemas.photo import PhotoCreateSchema, PhotoUpdateSchema
+from app.services.profile import read_profile
 
 
 async def create_photo(db: AsyncSession, photo_in: PhotoCreateSchema):
@@ -154,10 +156,28 @@ async def read_photo(db: AsyncSession, photo_id: int):
 async def delete_photo(db: AsyncSession, photo_id: int):
     """Удаление фотографии"""
     photo = await read_photo(db, photo_id)
+
+    storage.delete_file(photo.url)
     
     await db.delete(photo)
     await db.commit()
     
+    return {"ok": True}
+
+
+async def delete_photos(db: AsyncSession, profile_id: int):
+    """Удаление фотографий (множество, по умолчанию - все)"""
+    profile = await read_profile(db, profile_id)
+
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Профиль с ID {profile_id} не найден"
+        )
+    
+    for photo in profile.photos:
+        await delete_photo(db, photo.id)
+
     return {"ok": True}
 
 
@@ -212,3 +232,45 @@ async def reorder_photos(db: AsyncSession, profile_id: int, photo_ids: List[int]
         if photo:
             photo.sort_order = index
     await db.commit()
+
+
+async def create_photos(db: AsyncSession, files: list[UploadFile], profile_id: int = Form(...)):
+    print(f"[Upload] Starting upload for profile {profile_id}, files: {len(files)}")
+    uploaded_photos = []
+    
+    # Проверяем существование профиля
+    stmt = select(Profile).where(Profile.id == profile_id)
+    result = await db.execute(stmt)
+    profile = result.scalar_one_or_none()
+    
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Профиль с ID {profile_id} не найден"
+        )
+    
+    for index, file in enumerate(files):
+        # Читаем содержимое файла
+        content = await file.read()
+        print(f"[Upload] Processing file {index}: {file.filename}, size: {len(content)} bytes")
+        
+        # Сохраняем в хранилище
+        file_url = storage.save_photo(profile_id, content, file.filename)
+        print(f"[Upload] File saved, URL: {file_url}")
+        
+        # Создаем запись в БД
+        is_avatar = (index == 0 and len(await read_photos(db, profile_id)) == 0)
+        
+        photo_in = PhotoCreateSchema(
+            url=file_url,
+            profile_id=profile_id,
+            title=file.filename,
+            is_avatar=is_avatar
+        )
+        
+        photo = await create_photo(db, photo_in)
+        print(f"[Upload] Photo record created: ID={photo.id}, URL={photo.url}")
+
+        uploaded_photos.append(photo)
+    return uploaded_photos
+    

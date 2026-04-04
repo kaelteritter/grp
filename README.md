@@ -22,3 +22,6 @@ uvicorn app.main:app --reload
 ```bash
 find .. -name __pycache__ | xargs rm -rf 
 ```
+
+cd frontend-react
+npm run dev
