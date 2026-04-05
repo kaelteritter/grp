@@ -1,11 +1,12 @@
 import logging
 from datetime import datetime
+from typing import List, Dict, Any
 from fastapi import HTTPException, status
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.profile import Profile, profile_connections, RelationType
-from app.schemas.profile import ProfileConnectionSchema
+from app.schemas.profile import ProfileConnectionCreateSchema, ProfileConnectionReadSchema
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ REVERSE_RELATIONS = {
 }
 
 
-async def add_connection(db: AsyncSession, connection_in: ProfileConnectionSchema):
+async def add_connection(db: AsyncSession, connection_in: ProfileConnectionCreateSchema):
     """Добавление связи между профилями"""
     try:
         # Проверяем существование профилей
@@ -67,12 +68,14 @@ async def add_connection(db: AsyncSession, connection_in: ProfileConnectionSchem
         reverse_relation = REVERSE_RELATIONS.get(connection_in.relation_type, connection_in.relation_type)
         reverse_relation_str = reverse_relation.value if hasattr(reverse_relation, 'value') else str(reverse_relation)
         
+        now = datetime.now()
+        
         # Добавляем прямую связь
         stmt = profile_connections.insert().values(
             profile_id=connection_in.profile_id,
             connected_profile_id=connection_in.connected_profile_id,
             relation_type=relation_type_str,
-            created_at=datetime.now()
+            created_at=now
         )
         await db.execute(stmt)
         
@@ -81,7 +84,7 @@ async def add_connection(db: AsyncSession, connection_in: ProfileConnectionSchem
             profile_id=connection_in.connected_profile_id,
             connected_profile_id=connection_in.profile_id,
             relation_type=reverse_relation_str,
-            created_at=datetime.now()
+            created_at=now
         )
         await db.execute(stmt)
         
@@ -142,7 +145,7 @@ async def remove_connection(db: AsyncSession, profile_id: int, connected_profile
         )
 
 
-async def get_profile_connections(db: AsyncSession, profile_id: int):
+async def get_profile_connections(db: AsyncSession, profile_id: int) -> List[ProfileConnectionReadSchema]:
     """Получение всех связей профиля"""
     try:
         # Проверяем существование профиля
@@ -163,18 +166,15 @@ async def get_profile_connections(db: AsyncSession, profile_id: int):
         result = await db.execute(stmt)
         connections = result.all()
         
-        # Загружаем данные связанных профилей
-        connections_data = []
-        for conn in connections:
-            stmt = select(Profile).where(Profile.id == conn.connected_profile_id)
-            result = await db.execute(stmt)
-            connected_profile = result.scalar_one()
-            
-            connections_data.append({
-                "connected_profile": connected_profile,
-                "relation_type": conn.relation_type,
-                "created_at": conn.created_at
-            })
+        # Формируем ответ без загрузки полных данных профиля
+        connections_data = [
+            ProfileConnectionReadSchema(
+                connected_profile_id=conn.connected_profile_id,
+                relation_type=conn.relation_type,
+                created_at=conn.created_at
+            )
+            for conn in connections
+        ]
         
         return connections_data
         

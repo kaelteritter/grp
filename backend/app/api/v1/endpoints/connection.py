@@ -2,7 +2,7 @@ from fastapi import APIRouter, status
 from typing import List
 
 from app.core.database import SessionDep
-from app.schemas.profile import ProfileConnectionSchema, ProfileConnectionReadSchema
+from app.schemas.profile import ProfileConnectionCreateSchema, ProfileConnectionReadSchema
 from app import services
 
 
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/connections", tags=["connections"])
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def add_connection(
     db: SessionDep,
-    connection_in: ProfileConnectionSchema
+    connection_in: ProfileConnectionCreateSchema
 ):
     """
     Добавить связь между профилями

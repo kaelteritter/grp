@@ -7,6 +7,7 @@ from sqlalchemy.orm import selectinload
 from fastapi import Form, HTTPException, UploadFile, status
 
 from app.core.storage import storage
+from app.models.cloth import Cloth
 from app.models.daytime import DayTime
 from app.models.address import Address
 from app.models.photo import Photo
@@ -138,6 +139,16 @@ async def update_photo(db: AsyncSession, photo_id: int, photo_in: PhotoUpdateSch
             for existing_photo in existing_photos:
                 existing_photo.is_avatar = False
             await db.flush()
+
+        if "cloth_ids" in update_data:
+            cloth_ids = update_data.pop("cloth_ids")
+            if cloth_ids is not None:
+                stmt = select(Cloth).where(Cloth.id.in_(cloth_ids))
+                result = await db.execute(stmt)
+                clothes = result.scalars().all()
+                photo.clothes = clothes
+            else:
+                photo.clothes = []
         
         for field, value in update_data.items():
             setattr(photo, field, value)
@@ -177,7 +188,7 @@ async def update_photo(db: AsyncSession, photo_id: int, photo_in: PhotoUpdateSch
 
 async def read_photos(db: AsyncSession, profile_id: Optional[int] = None, skip: int = 0, limit: int = 100):
     """Получение списка фотографий с фильтрацией по профилю"""
-    stmt = select(Photo).options(selectinload(Photo.profile))
+    stmt = select(Photo).options(selectinload(Photo.clothes))
     
     if profile_id:
         stmt = stmt.where(Photo.profile_id == profile_id)

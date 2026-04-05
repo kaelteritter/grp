@@ -27,7 +27,7 @@ const HairIcon = () => (
 );
 
 const BriefcaseIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
     <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
   </svg>
@@ -131,6 +131,11 @@ const ProfilePage = () => {
     }
   };
 
+  const handleSlideshowClose = () => {
+      setSlideshowOpen(false);
+      loadAllData(); // перезагрузить все данные профиля, включая фото
+    };
+
   const handleUpdateProfile = async (profileData, linksData, photos, videos, professionId, companyId, connections) => {
     try {
       await profileApi.update(id, profileData);
@@ -214,7 +219,7 @@ const ProfilePage = () => {
   };
 
   const fullName = profile ? [profile.last_name, profile.first_name, profile.middle_name].filter(Boolean).join(' ') || 'Без имени' : '';
-  const avatarPhoto = photos.find(p => p.is_avatar) || photos[0];
+  const avatarPhoto = profile?.photos?.find(p => p.is_avatar) || profile?.photos?.[0];
   const avatarIndex = photos.findIndex(p => p.id === avatarPhoto?.id);
   const profession = profile?.professions?.[0];
   const hairColor = profile?.hair_color;
@@ -363,6 +368,95 @@ const ProfilePage = () => {
             </div>
           </div>
 
+          {/* Work Section */}
+          {profile.employments && profile.employments.length > 0 && (
+            <div className="border-b border-gray-800 p-6">
+              <h2 className="text-xs font-light tracking-wider text-gray-500 mb-3">WORK</h2>
+              <div className="space-y-1">
+                {profile.employments.map((job, idx) => (
+                  <div key={idx} className="flex items-baseline gap-2 text-sm flex-wrap">
+                    {/* Профессия */}
+                    <button
+                      onClick={() => alert(`Поиск профилей с профессией: ${job.profession_name}`)}
+                      className="font-medium text-white hover:text-blue-400 transition"
+                    >
+                      {job.profession_name}
+                    </button>
+                    
+                    {/* Разделитель и компания */}
+                    {job.company_name && (
+                      <>
+                        <span className="text-gray-500">|</span>
+                        <button
+                          onClick={() => alert(`Страница компании: ${job.company_name}`)}
+                          className="text-gray-300 hover:text-blue-400 transition"
+                        >
+                          {job.company_name}
+                        </button>
+                      </>
+                    )}
+                    
+                    {/* Даты работы */}
+                    {(job.start_year || job.end_year) && (
+                      <>
+                        <span className="text-gray-500">|</span>
+                        <span className="text-gray-500">
+                          {job.start_year && job.end_year && `${job.start_year} — ${job.end_year}`}
+                          {job.start_year && !job.end_year && job.is_current && `${job.start_year} — present`}
+                          {job.start_year && !job.end_year && !job.is_current && `${job.start_year}`}
+                          {!job.start_year && job.end_year && `until ${job.end_year}`}
+                        </span>
+                      </>
+                    )}
+                    
+                    {/* Зеленая галочка для текущей работы */}
+                    {job.is_current && (
+                      <span className="text-green-500 text-sm" title="Current job">✓</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          
+          {connections.length > 0 && (
+            <div className="border-b border-gray-800 p-4">
+              <h2 className="text-xs font-light tracking-wider text-gray-500 mb-3">CONNECTIONS</h2>
+              <div className="flex gap-3 flex-wrap">
+                {connections.map(conn => {
+                  // Используем connected_profile, если есть, иначе только ID
+                  const connectedProfile = conn.connected_profile;
+                  const profileId = connectedProfile?.id || conn.connected_profile_id;
+                  if (!profileId) return null;
+                  
+                  const profileName = connectedProfile 
+                    ? [connectedProfile.first_name, connectedProfile.last_name].filter(Boolean).join(' ') 
+                    : `ID ${profileId}`;
+                  const photoUrl = connectedProfile?.photos?.[0]?.url 
+                    ? `http://localhost:8000${connectedProfile.photos[0].url}` 
+                    : null;
+                  const initials = profileName.slice(0, 2).toUpperCase();
+
+                  return (
+                    <div key={profileId} className="text-center cursor-pointer hover:opacity-80" onClick={() => navigate(`/profile/${profileId}`)}>
+                      <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-800 mx-auto mb-1">
+                        {photoUrl ? (
+                          <img src={photoUrl} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-xs font-medium text-gray-500">
+                            {initials}
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-[10px] text-gray-400">{conn.relation_type}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Add Photo Button */}
           <div className="p-4 border-b border-gray-800">
             <label className="flex items-center justify-center gap-2 text-sm text-gray-400 hover:text-white cursor-pointer transition py-2">
@@ -375,26 +469,6 @@ const ProfilePage = () => {
             </label>
           </div>
 
-          {/* Connections Section */}
-          {connections.length > 0 && (
-            <div className="border-b border-gray-800 p-4">
-              <h2 className="text-xs font-light tracking-wider text-gray-500 mb-3">CONNECTIONS</h2>
-              <div className="flex gap-3 flex-wrap">
-                {connections.map(conn => (
-                  <div key={conn.connected_profile.id} className="text-center cursor-pointer hover:opacity-80" onClick={() => navigate(`/profile/${conn.connected_profile.id}`)}>
-                    <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-800 mx-auto mb-1">
-                      {conn.connected_profile.photos?.[0] ? (
-                        <img src={`http://localhost:8000${conn.connected_profile.photos[0].url}`} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-xs">{conn.connected_profile.first_name?.[0]}{conn.connected_profile.last_name?.[0]}</div>
-                      )}
-                    </div>
-                    <div className="text-[10px] text-gray-400">{conn.relation_type}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Tabs */}
           <div className="flex border-b border-gray-800">
@@ -431,11 +505,15 @@ const ProfilePage = () => {
                       )}
 
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 opacity-0 group-hover:opacity-100 transition">
-                        <div className="flex gap-2 text-[10px] text-gray-300">
+                        <div className="flex flex-wrap gap-2 text-[10px] text-gray-300">
                           {photo.season && <span>🌸 {photo.season.name}</span>}
                           {photo.daytime && <span>☀️ {photo.daytime.name}</span>}
                           {photo.event && <span>🎉 {photo.event.name}</span>}
-                          {photo.clothes?.length > 0 && <span>👕 {photo.clothes.length}</span>}
+                          {photo.clothes && photo.clothes.length > 0 && (
+                            <span className="flex gap-1">
+                              👕 {photo.clothes.map(c => c.name).join(', ')}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -531,7 +609,8 @@ const ProfilePage = () => {
 
       <SlideshowModal
         isOpen={slideshowOpen}
-        onClose={() => setSlideshowOpen(false)}
+        onClose={handleSlideshowClose}
+        onUpdate={loadAllData}
         photos={currentMedia}
         profile={profile}
         startIndex={currentIndex}

@@ -43,7 +43,7 @@ const EditIcon = () => (
   </svg>
 );
 
-const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVideo = false }) => {
+const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVideo = false, onUpdate }) => {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(startIndex);
   const [showTagForm, setShowTagForm] = useState(false);
@@ -65,6 +65,7 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
   const [showEventSelect, setShowEventSelect] = useState(false);
   const [showClothSelect, setShowClothSelect] = useState(false);
   const [hoverVideo, setHoverVideo] = useState(false);
+  const [selectedClothes, setSelectedClothes] = useState([]);
 
   const safePhotos = photos && Array.isArray(photos) ? photos : [];
   
@@ -116,6 +117,9 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
       setSelectedSeason(photo.season_id || '');
       setSelectedDaytime(photo.daytime_id || '');
       setSelectedEvent(photo.event_id || '');
+      // Если приходит массив clothes, извлекаем ID
+      const clothIds = photo.clothes?.map(c => c.id) || [];
+      setSelectedClothes(clothIds);
     } catch (error) {
       console.error('Error loading photo attributes:', error);
     }
@@ -149,6 +153,47 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
     if (currentIndex < safePhotos.length - 1) setCurrentIndex(currentIndex + 1);
   };
 
+const handleUpdateClothes = async (clothIds) => {
+    if (!safePhotos[currentIndex]?.id) return;
+    setUpdating(true);
+    try {
+      await fetch(`http://localhost:8000/api/v1/photos/${safePhotos[currentIndex].id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cloth_ids: clothIds })
+      });
+      if (onUpdate) onUpdate(); // перезагрузить данные после сохранения
+      setShowClothSelect(false);
+    } catch (error) {
+      console.error('Error updating clothes:', error);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleUpdateAttribute = async (field, value) => {
+    if (!safePhotos[currentIndex]?.id) return;
+    setUpdating(true);
+    try {
+      await fetch(`http://localhost:8000/api/v1/photos/${safePhotos[currentIndex].id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: value || null })
+      });
+      if (field === 'season_id') setSelectedSeason(value);
+      if (field === 'daytime_id') setSelectedDaytime(value);
+      if (field === 'event_id') setSelectedEvent(value);
+      if (onUpdate) onUpdate();
+      setShowSeasonSelect(false);
+      setShowDaytimeSelect(false);
+      setShowEventSelect(false);
+    } catch (error) {
+      console.error('Error updating attribute:', error);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   const handleAddTag = async () => {
     if (!safePhotos[currentIndex]?.id || !tagProfileId) return;
     try {
@@ -170,34 +215,6 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
     }
   };
 
-  const handleUpdateAttribute = async (field, value) => {
-    if (!safePhotos[currentIndex]?.id) return;
-    setUpdating(true);
-    try {
-      const updateData = {};
-      updateData[field] = value || null;
-      
-      await fetch(`http://localhost:8000/api/v1/photos/${safePhotos[currentIndex].id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updateData)
-      });
-      
-      if (field === 'season_id') setSelectedSeason(value);
-      if (field === 'daytime_id') setSelectedDaytime(value);
-      if (field === 'event_id') setSelectedEvent(value);
-      
-      // Закрываем селекты после сохранения
-      setShowSeasonSelect(false);
-      setShowDaytimeSelect(false);
-      setShowEventSelect(false);
-      setShowClothSelect(false);
-    } catch (error) {
-      console.error('Error updating attribute:', error);
-    } finally {
-      setUpdating(false);
-    }
-  };
 
   const currentPhoto = safePhotos[currentIndex];
   const fullName = profile ? [profile.last_name, profile.first_name, profile.middle_name].filter(Boolean).join(' ') || 'Без имени' : 'Без имени';
@@ -375,27 +392,72 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
                   {events.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
                 </select>
               )}
+
+              {selectedClothes.length > 0 && (
+                <div className="mt-3">
+                  <h4 className="text-xs text-gray-500 mb-1">Clothes</h4>
+                  <div className="flex flex-wrap gap-1">
+                    {selectedClothes.map(clothId => {
+                      const cloth = clothes.find(c => c.id === clothId);
+                      return cloth ? (
+                        <span key={cloth.id} className="text-[10px] bg-gray-800 px-1.5 py-0.5 rounded">
+                          {cloth.name}
+                        </span>
+                      ) : null;
+                    })}
+                  </div>
+                </div>
+              )}
+
               
-              {/* Clothes */}
+              {/* Clothes (multiple) */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <ClothesIcon />
-                  <span className="text-xs">{selectedClothObj ? `${selectedClothObj.name} (${selectedClothObj.color}, ${selectedClothObj.material})` : 'Not specified'}</span>
+                  <span className="text-xs">
+                    {selectedClothes.length > 0 
+                      ? `${selectedClothes.length} item(s)` 
+                      : 'Not specified'}
+                  </span>
                 </div>
                 <button onClick={() => setShowClothSelect(!showClothSelect)} className="text-gray-400 hover:text-white transition">
                   <EditIcon />
                 </button>
               </div>
               {showClothSelect && (
-                <select 
-                  className="w-full bg-gray-800 border border-gray-700 rounded p-1 text-xs" 
-                  value={selectedCloth} 
-                  onChange={e => setSelectedCloth(e.target.value)}
-                  disabled={updating}
-                >
-                  <option value="">Not specified</option>
-                  {clothes.map(c => <option key={c.id} value={c.id}>{c.name} ({c.color}, {c.material})</option>)}
-                </select>
+                <div className="mt-2 space-y-2">
+                  <div className="max-h-40 overflow-y-auto space-y-1 bg-gray-900 p-2 rounded">
+                    {clothes.map(cloth => (
+                      <label key={cloth.id} className="flex items-center gap-2 text-xs">
+                        <input
+                          type="checkbox"
+                          value={cloth.id}
+                          checked={selectedClothes.includes(cloth.id)}
+                          onChange={(e) => {
+                            const id = cloth.id;
+                            if (e.target.checked) {
+                              setSelectedClothes(prev => [...prev, id]);
+                            } else {
+                              setSelectedClothes(prev => prev.filter(cid => cid !== id));
+                            }
+                          }}
+                          className="rounded border-gray-600 bg-gray-800"
+                        />
+                        <span>{cloth.name} ({cloth.color}, {cloth.material})</span>
+                      </label>
+                    ))}
+                  </div>
+                  <button
+                    onClick={async () => {
+                      await handleUpdateClothes(selectedClothes);
+                      setShowClothSelect(false);
+                    }}
+                    className="w-full text-xs py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    disabled={updating}
+                  >
+                    Save clothes
+                  </button>
+                </div>
               )}
             </div>
           </div>

@@ -164,6 +164,34 @@ const ProfileCard = ({ profile, onEdit, onDelete, onAvatarClick, onNameClick }) 
             <span className="text-gray-500">—</span>
           )}
         </div>
+
+        {/* Место работы */}
+        {profile.employments && profile.employments.length > 0 && (
+          <div className="flex items-center gap-1.5 text-[10px] text-gray-300 mb-0.5">
+            <BriefcaseIcon />
+            <div className="flex flex-wrap items-baseline gap-x-1 gap-y-0">
+              {profile.employments.slice(0, 1).map((job, idx) => (
+                <span key={idx} className="inline-flex items-baseline gap-1">
+                  <span className="hover:text-blue-400 cursor-pointer" onClick={() => alert(job.profession_name)}>
+                    {job.profession_name}
+                  </span>
+                  {job.company_name && (
+                    <>
+                      <span className="text-gray-500">|</span>
+                      <span className="hover:text-blue-400 cursor-pointer" onClick={() => alert(job.company_name)}>
+                        {job.company_name}
+                      </span>
+                    </>
+                  )}
+                  {job.is_current && <span className="text-green-500 text-[9px]">✓</span>}
+                </span>
+              ))}
+              {profile.employments.length > 1 && (
+                <span className="text-gray-500 text-[9px]">+{profile.employments.length - 1}</span>
+              )}
+            </div>
+          </div>
+        )}
         
         {/* Ссылки */}
         {profile.links?.length > 0 && (

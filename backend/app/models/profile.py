@@ -47,9 +47,6 @@ class RelationType(str, enum.Enum):
 class Profile(Base):
     """
     Таблица профилей.
-    Обязательно только ID
-    Дату рождения необходимо разделить на части, потому что может быть известно
-    только два или один из трех параметров
     """
     __tablename__ = "profiles"
 
@@ -58,6 +55,8 @@ class Profile(Base):
         primary_key=True,
         autoincrement=True,
     )
+
+    # ФИО
     first_name: Mapped[str] = mapped_column(
         String(255),
         nullable=True,
@@ -70,12 +69,20 @@ class Profile(Base):
         String(255),
         nullable=True,
     )
-    sex: Mapped[Gender] = mapped_column(Enum(Gender), default=Gender.MALE)
+
+    # Физические характеристики
+    sex: Mapped[Gender] = mapped_column(Enum(Gender), nullable=False)
+    hair_color: Mapped[str] = mapped_column(
+        String(50),
+        nullable=True
+    )
+
+    # Дата рождения
     birth_year: Mapped[int] = mapped_column(Integer, nullable=True)
     birth_month: Mapped[int] = mapped_column(Integer, nullable=True)
     birth_day: Mapped[int] = mapped_column(Integer, nullable=True)
 
-    # Новые поля
+    # Контактные данные
     email: Mapped[str] = mapped_column(
         String(255),
         nullable=True,
@@ -85,11 +92,9 @@ class Profile(Base):
         String(20),
         nullable=True
     )
-    hair_color: Mapped[str] = mapped_column(
-        String(50),
-        nullable=True
-    )
 
+
+    # Локации
     current_location_id: Mapped[int] = mapped_column(ForeignKey("locations.id"), nullable=True)
     current_location = relationship(
         "Location",
@@ -97,13 +102,26 @@ class Profile(Base):
         lazy="selectin"
     )
 
+    # Метаданные
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=datetime.now,
+        nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=datetime.now,
+        onupdate=datetime.now,
+        nullable=False
+    )
+
+    # Связи
     links = relationship(
         "Link",
         back_populates="profile",
         cascade="all, delete-orphan",
         lazy="selectin"
     )
-    
     photos = relationship(
         "Photo",
         back_populates="profile",
@@ -135,6 +153,7 @@ class Profile(Base):
         lazy="selectin"
     )
 
+    # Отметки на фотографиях
     photo_tags = relationship(
         "PhotoTag",
         back_populates="profile",
@@ -142,18 +161,6 @@ class Profile(Base):
         lazy="selectin"
     )
 
-
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.now,
-        nullable=False
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.now,
-        onupdate=datetime.now,
-        nullable=False
-    )
 
     __table_args__ = (
         CheckConstraint(

@@ -14,13 +14,8 @@ router = APIRouter(
 )
 
 
-def enrich_profile_with_location(profile):
-    """Добавляет данные о локации, регионе и стране в ответ"""
-    return ProfileReadSchema.model_validate(profile, from_attributes=True)
 
-
-
-@router.get("/", response_model=List[ProfileReadSchema])
+@router.get("/", response_model=List[ProfileReadSchema], status_code=status.HTTP_200_OK)
 async def read_profiles(
     db: SessionDep,
     skip: int = 0,
@@ -29,10 +24,7 @@ async def read_profiles(
     """
     Получить список всех профилей с пагинацией
     """
-    profiles = await services.read_profiles(db, skip=skip, limit=limit)
-    return [enrich_profile_with_location(profile) for profile in profiles]
-
-
+    return await services.read_profiles(db, skip=skip, limit=limit)
 
 
 @router.post("/", response_model=ProfileReadSchema, status_code=status.HTTP_201_CREATED)
@@ -40,11 +32,13 @@ async def create_profile(
     db: SessionDep,
     profile_in: ProfileCreateSchema
 ):
-    profile = await services.create_profile(db, profile_in)
-    return enrich_profile_with_location(profile)
+    """
+    Создать новый профиль
+    """
+    return await services.create_profile(db, profile_in)
 
 
-@router.get("/{profile_id}", response_model=ProfileReadSchema)
+@router.get("/{profile_id}", response_model=ProfileReadSchema, status_code=status.HTTP_200_OK)
 async def read_profile(
     db: SessionDep,
     profile_id: int
@@ -52,31 +46,19 @@ async def read_profile(
     """
     Получить профиль по ID
     """
-    profile = await services.read_profile(db, profile_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Профиль не найден"
-        )
-    return enrich_profile_with_location(profile)
+    return await services.read_profile(db, profile_id)
 
 
-@router.patch("/{profile_id}", response_model=ProfileReadSchema)
+@router.patch("/{profile_id}", response_model=ProfileReadSchema, status_code=status.HTTP_200_OK)
 async def update_profile(
     db: SessionDep,
     profile_id: int,
     profile_in: ProfileUpdateSchema
 ):
     """
-    Обновить профиль
+    Обновить профиль по ID
     """
-    profile = await services.update_profile(db, profile_id, profile_in)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Профиль не найден"
-        )
-    return enrich_profile_with_location(profile)
+    return await services.update_profile(db, profile_id, profile_in)
 
 
 @router.delete("/{profile_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -85,12 +67,6 @@ async def delete_profile(
     profile_id: int
 ):
     """
-    Удалить профиль
+    Удалить профиль по ID
     """
-    result = await services.delete_profile(db, profile_id)
-    if not result:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Профиль не найден"
-        )
-    return None
+    return await services.delete_profile(db, profile_id)

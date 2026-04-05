@@ -7,7 +7,7 @@ from app.schemas.region import RegionReadSchema
 class LocationReadSchema(BaseModel):
     id: int
     name: str
-    region: Optional[RegionReadSchema] = None  # Сделаем поле опциональным
+    region: Optional[RegionReadSchema] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     
