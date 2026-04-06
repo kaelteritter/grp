@@ -1,4 +1,6 @@
-from typing import Optional, List
+# backend/app/schemas/photo.py
+
+from typing import TYPE_CHECKING, Optional, List
 from datetime import datetime
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 
@@ -88,3 +90,4 @@ class SimplePhotoSchema(BaseModel):
     sort_order: int
     created_at: datetime
     rating: Optional[float] = None
+

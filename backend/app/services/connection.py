@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import List, Dict, Any
 from fastapi import HTTPException, status
 from sqlalchemy import select, and_
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.profile import Profile, profile_connections, RelationType
@@ -165,17 +166,22 @@ async def get_profile_connections(db: AsyncSession, profile_id: int) -> List[Pro
         )
         result = await db.execute(stmt)
         connections = result.all()
-        
-        # Формируем ответ без загрузки полных данных профиля
-        connections_data = [
-            ProfileConnectionReadSchema(
-                connected_profile_id=conn.connected_profile_id,
-                relation_type=conn.relation_type,
-                created_at=conn.created_at
+
+        connections_data = []
+        for conn in connections:
+            # Загружаем связанный профиль с фото
+            stmt = select(Profile).where(Profile.id == conn.connected_profile_id).options(
+                selectinload(Profile.photos)
             )
-            for conn in connections
-        ]
-        
+            prof_result = await db.execute(stmt)
+            connected_profile = prof_result.scalar_one()
+            
+            connections_data.append({
+                "connected_profile_id": conn.connected_profile_id,
+                "connected_profile": connected_profile,
+                "relation_type": conn.relation_type,
+                "created_at": conn.created_at
+            })
         return connections_data
         
     except HTTPException:

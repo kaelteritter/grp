@@ -160,12 +160,25 @@ class ProfileUpdateSchema(BaseModel, ProfileFieldsValidationMixin):
     phone: Optional[str] = Field(None, max_length=20)
 
 
+
+class ProfileForConnectionReadSchema(BaseModel):
+    """Упрощённая схема профиля для отображения в связях (без циклических ссылок)"""
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: int
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    photos: Optional[List[PhotoForProfileReadSchema]] = []
+
+
 class ProfileConnectionReadSchema(BaseModel):
     """
     Схема для чтения информации о связи между профилями
     """
     connected_profile_id: int
+    connected_profile: Optional[ProfileForConnectionReadSchema] = None
     relation_type: str
+    created_at: datetime
     
 
 
