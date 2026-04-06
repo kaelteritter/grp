@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import LocationSearch from './LocationSearch';
 
 const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, professions, companies }) => {
   const [formData, setFormData] = useState({
@@ -237,12 +238,13 @@ const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, 
                 <div><label className="block text-[10px] text-gray-500 uppercase tracking-wider mb-1">Day</label><input type="number" name="birth_day" value={formData.birth_day} onChange={handleChange} className="w-full bg-transparent border-b border-gray-800 py-2 text-sm" placeholder="DD" /></div>
               </div>
 
-              <div>
+              <div className="form-group">
                 <label className="block text-[10px] text-gray-500 uppercase tracking-wider mb-1">Location</label>
-                <select name="current_location_id" value={formData.current_location_id} onChange={handleChange} className="w-full bg-transparent border-b border-gray-800 py-2 text-sm">
-                  <option value="">Not specified</option>
-                  {safeLocations.map(loc => <option key={loc.id} value={loc.id}>{loc.name}</option>)}
-                </select>
+                <LocationSearch
+                  value={formData.current_location_id}
+                  onChange={(locationId) => setFormData(prev => ({ ...prev, current_location_id: locationId }))}
+                  placeholder="Search location..."
+                />
               </div>
 
               <div>

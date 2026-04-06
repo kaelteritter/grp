@@ -93,7 +93,8 @@ async def read_location(db: AsyncSession, location_id: int):
 
 async def read_locations(
     db: AsyncSession, 
-    region_id: Optional[int] = None,
+    region_id: Optional[int],
+    search: Optional[str] = None,
     skip: int = 0, 
     limit: int = 100
 ):
@@ -104,6 +105,9 @@ async def read_locations(
     
     if region_id:
         stmt = stmt.where(Location.region_id == region_id)
+
+    if search:
+        stmt = stmt.where(Location.name.ilike(f"%{search}%"))
     
     stmt = stmt.order_by(Location.name).offset(skip).limit(limit)
     result = await db.execute(stmt)

@@ -30,14 +30,15 @@ async def create_location(
 @router.get("/", response_model=List[LocationReadSchema], status_code=status.HTTP_200_OK)
 async def read_locations(
     db: SessionDep,
-    region_id: Optional[int] = Query(None, description="Фильтр по ID региона"),
-    skip: int = Query(0, ge=0, description="Пропустить записей"),
-    limit: int = Query(100, ge=1, le=1000, description="Лимит записей")
+    region_id: Optional[int] = Query(None),
+    search: Optional[str] = Query(None, description="Поиск по названию"),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100)
 ):
     """
     Получить список локаций с фильтрацией по региону
     """
-    locations = await services.read_locations(db, region_id=region_id, skip=skip, limit=limit)
+    locations = await services.read_locations(db, region_id=region_id, search=search, skip=skip, limit=limit)
     return [enrich_location_with_region(location) for location in locations]
 
 
