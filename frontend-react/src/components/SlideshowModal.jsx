@@ -277,6 +277,7 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
   };
 
   const handleUpdateClothes = async (clothIds) => {
+    console.log('Saving clothes:', clothIds);
     if (!safePhotos[currentIndex]?.id) return;
     setUpdating(true);
     try {

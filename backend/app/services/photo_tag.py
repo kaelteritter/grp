@@ -118,7 +118,12 @@ async def read_photo_tags(
     
     stmt = stmt.order_by(PhotoTag.created_at.desc()).offset(skip).limit(limit)
     result = await db.execute(stmt)
-    return result.scalars().all()
+    tags = result.scalars().all()
+
+    for tag in tags:
+        tag.photo_url = tag.photo.url if tag.photo else None
+
+    return tags
 
 
 async def update_photo_tag(

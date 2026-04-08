@@ -157,7 +157,10 @@ async def update_photo(db: AsyncSession, photo_id: int, photo_in: PhotoUpdateSch
         await db.refresh(photo)
         
         # Подгружаем связанные данные
-        stmt = select(Photo).where(Photo.id == photo_id).options(selectinload(Photo.profile))
+        stmt = select(Photo).where(Photo.id == photo_id).options(
+            selectinload(Photo.profile),
+            selectinload(Photo.clothes)
+        )
         result = await db.execute(stmt)
         photo = result.scalar_one()
         
@@ -200,7 +203,10 @@ async def read_photos(db: AsyncSession, profile_id: Optional[int] = None, skip: 
 
 async def read_photo(db: AsyncSession, photo_id: int):
     """Получение фотографии по ID"""
-    stmt = select(Photo).where(Photo.id == photo_id).options(selectinload(Photo.profile))
+    stmt = select(Photo).where(Photo.id == photo_id).options(
+        selectinload(Photo.profile),
+        selectinload(Photo.clothes)
+    )
     result = await db.execute(stmt)
     photo = result.scalar_one_or_none()
     

@@ -559,34 +559,73 @@ const ProfilePage = () => {
           )}
 
           {/* Tagged Photos Gallery */}
+          console.log('SlideshowModal received photos:', photos);
           {activeTab === 'tags' && (
             <div className="p-4">
               {tags.length > 0 ? (
                 <div className="columns-2 md:columns-3 gap-2 space-y-2">
-                  {tags.map((tag) => (
-                    <div key={tag.id} className="relative group break-inside-avoid cursor-pointer" onClick={() => openSlideshow([tag.photo], 0, false)}>
-                      {tag.photo?.url ? (
-                        <img src={`http://localhost:8000${tag.photo.url}`} alt="Tagged" className="w-full h-auto object-cover" />
-                      ) : (
-                        <div className="w-full aspect-square bg-gray-800 flex items-center justify-center text-gray-600 text-xs">NO IMAGE</div>
-                      )}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-                        <div className="flex items-center gap-2 text-[10px] text-gray-300">
-                          <div 
-                            className="w-5 h-5 rounded-full overflow-hidden bg-gray-700 cursor-pointer hover:opacity-80"
-                            onClick={(e) => { e.stopPropagation(); navigate(`/profile/${tag.profile_id}`); }}
-                          >
-                            {tag.profile?.photos?.[0] ? (
-                              <img src={`http://localhost:8000${tag.profile.photos[0].url}`} alt="" className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-[8px]">{tag.profile?.first_name?.[0]}</div>
-                            )}
+                  {(() => {
+                    // Собираем уникальные фото из всех тегов
+                    const uniqueTaggedPhotos = [];
+                    const seenIds = new Set();
+                    tags.forEach(t => {
+                      if (t.photo_url && !seenIds.has(t.photo_id)) {
+                        seenIds.add(t.photo_id);
+                        uniqueTaggedPhotos.push({
+                          id: t.photo_id,
+                          url: t.photo_url,
+                          title: t.photo?.title || ''
+                        });
+                      }
+                    });
+                    
+                    return tags.map((tag, idx) => {
+                      const currentIndex = uniqueTaggedPhotos.findIndex(p => p.id === tag.photo_id);
+                      return (
+                        <div 
+                          key={tag.id} 
+                          className="relative group break-inside-avoid cursor-pointer" 
+                          onClick={() => openSlideshow(uniqueTaggedPhotos, currentIndex, false)}
+                        >
+                          {tag.photo_url ? (
+                            <img 
+                              src={`http://localhost:8000${tag.photo_url}`} 
+                              alt="Tagged" 
+                              className="w-full h-auto object-cover" 
+                            />
+                          ) : (
+                            <div className="w-full aspect-square bg-gray-800 flex items-center justify-center text-gray-600 text-xs">
+                              NO IMAGE
+                            </div>
+                          )}
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                            <div className="flex items-center gap-2 text-[10px] text-gray-300">
+                              <div 
+                                className="w-5 h-5 rounded-full overflow-hidden bg-gray-700 cursor-pointer hover:opacity-80"
+                                onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  navigate(`/profile/${tag.profile_id}`);
+                                }}
+                              >
+                                {tag.profile?.photos?.[0] ? (
+                                  <img 
+                                    src={`http://localhost:8000${tag.profile.photos[0].url}`} 
+                                    alt="" 
+                                    className="w-full h-full object-cover" 
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-[8px]">
+                                    {tag.profile?.first_name?.[0]}
+                                  </div>
+                                )}
+                              </div>
+                              <span>Tagged by {tag.profile?.first_name}</span>
+                            </div>
                           </div>
-                          <span>Tagged by {tag.profile?.first_name} at ({tag.x}, {tag.y})</span>
                         </div>
-                      </div>
-                    </div>
-                  ))}
+                      );
+                    });
+                  })()}
                 </div>
               ) : (
                 <div className="text-center py-12 text-gray-600 text-sm">Нет отметок</div>

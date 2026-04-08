@@ -40,6 +40,8 @@ class PhotoTagReadSchema(BaseModel):
     x: float
     y: float
     created_at: datetime
+    photo_url: Optional[str] = None
+    
 
 class SimplePhotoTagSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
