@@ -1,7 +1,7 @@
 import logging
 from typing import List, Optional
 from fastapi import HTTPException, status
-from sqlalchemy import select, and_
+from sqlalchemy import or_, select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload, contains_eager
 from sqlalchemy.exc import IntegrityError
@@ -272,7 +272,8 @@ async def read_profile(db: AsyncSession, profile_id: int) -> ProfileReadSchema:
 async def read_profiles(
     db: AsyncSession,
     skip: int = 0,
-    limit: int = 100
+    limit: int = 100,
+    search: Optional[str] = None,
 ) -> List[ProfileReadSchema]:
     """Получение списка профилей с пагинацией и трудоустройствами"""
     try:
@@ -282,8 +283,19 @@ async def read_profiles(
             selectinload(Profile.links).selectinload(Link.platform),
             selectinload(Profile.photos),
             selectinload(Profile.videos)
-        ).offset(skip).limit(limit).order_by(Profile.created_at.desc())
+        )
+        
+        
+        if search:
+            stmt = stmt.where(
+                or_(
+                    Profile.first_name.ilike(f"%{search}%"),
+                    Profile.last_name.ilike(f"%{search}%"),
+                    Profile.middle_name.ilike(f"%{search}%")
+                )
+            )
 
+        stmt = stmt.offset(skip).limit(limit).order_by(Profile.created_at.desc())
         result = await db.execute(stmt)
         profiles = result.scalars().all()
         

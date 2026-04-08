@@ -1,7 +1,7 @@
 # backend/app/api/v1/endpoints/profile.py
 
-from fastapi import APIRouter, HTTPException, status
-from typing import List
+from fastapi import APIRouter, HTTPException, Query, status
+from typing import List, Optional
 
 from app.core.database import SessionDep
 from app.schemas.profile import ProfileReadSchema, ProfileCreateSchema, ProfileUpdateSchema
@@ -19,12 +19,13 @@ router = APIRouter(
 async def read_profiles(
     db: SessionDep,
     skip: int = 0,
-    limit: int = 100
+    limit: int = 100,
+    search: Optional[str] = Query(None, description="Поиск по имени/фамилии")
 ):
     """
     Получить список всех профилей с пагинацией
     """
-    return await services.read_profiles(db, skip=skip, limit=limit)
+    return await services.read_profiles(db, skip=skip, limit=limit, search=search)
 
 
 @router.post("/", response_model=ProfileReadSchema, status_code=status.HTTP_201_CREATED)
