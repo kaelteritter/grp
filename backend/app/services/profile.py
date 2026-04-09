@@ -68,7 +68,8 @@ def _convert_links_to_schema(links: List[Link]) -> List[dict]:
             platform_dict = {
                 "id": link.platform.id,
                 "name": link.platform.name,
-                "base_url": link.platform.base_url
+                "base_url": link.platform.base_url,
+                "icon_url": link.platform.icon_url,
             }
         result.append({
             "id": link.id,

@@ -118,7 +118,6 @@ const ProfilePage = () => {
     setSlideshowOpen(true);
   };
 
-  // Функция установки аватарки
   const setAsAvatar = async (photoId) => {
     try {
       await fetch(`http://localhost:8000/api/v1/photos/profile/${id}/avatar/${photoId}`, {
@@ -132,9 +131,9 @@ const ProfilePage = () => {
   };
 
   const handleSlideshowClose = () => {
-      setSlideshowOpen(false);
-      loadAllData(); // перезагрузить все данные профиля, включая фото
-    };
+    setSlideshowOpen(false);
+    loadAllData();
+  };
 
   const handleUpdateProfile = async (profileData, linksData, photos, videos, professionId, companyId, connections) => {
     try {
@@ -221,7 +220,6 @@ const ProfilePage = () => {
   const fullName = profile ? [profile.last_name, profile.first_name, profile.middle_name].filter(Boolean).join(' ') || 'Без имени' : '';
   const avatarPhoto = profile?.photos?.find(p => p.is_avatar) || profile?.photos?.[0];
   const avatarIndex = photos.findIndex(p => p.id === avatarPhoto?.id);
-  const profession = profile?.professions?.[0];
   const hairColor = profile?.hair_color;
   const location = profile?.current_location;
   const fullLocation = location ? [location.name, location.region?.name, location.region?.country?.name].filter(Boolean).join(', ') : '';
@@ -308,40 +306,45 @@ const ProfilePage = () => {
 
               <div className="flex-1">
                 <h1 className="text-xl font-light mb-2">{fullName}</h1>
-
                 <div className="text-xs text-gray-500 space-y-1">
+                  {/* Пол */}
                   <div className="flex items-center gap-2">
                     {profile.sex === 'male' ? '♂ Male' : '♀ Female'}
                   </div>
-
+                  
+                  {/* Дата рождения */}
                   {formatBirthDate() && (
                     <div className="flex items-center gap-2">
                       <CalendarIcon />
                       <span>{formatBirthDate()}</span>
                     </div>
                   )}
-
+                  
+                  {/* Локация */}
                   {fullLocation && (
                     <div className="flex items-center gap-2">
                       <LocationIcon />
                       <span className="truncate">{fullLocation}</span>
                     </div>
                   )}
-
+                  
+                  {/* Email */}
                   {profile.email && (
                     <div className="flex items-center gap-2">
                       <EmailIcon />
                       <span>{profile.email}</span>
                     </div>
                   )}
-
+                  
+                  {/* Телефон */}
                   {profile.phone && (
                     <div className="flex items-center gap-2">
                       <PhoneIcon />
                       <span>{profile.phone}</span>
                     </div>
                   )}
-
+                  
+                  {/* Цвет волос */}
                   {hairColor && (
                     <div className="flex items-center gap-2">
                       <HairIcon />
@@ -349,15 +352,37 @@ const ProfilePage = () => {
                       <span>{hairColor}</span>
                     </div>
                   )}
-
-                  {profession && (
-                    <div className="flex items-center gap-2">
-                      <BriefcaseIcon />
-                      <span>{profession.name}{profession.company_name ? ` @ ${profession.company_name}` : ''}</span>
+                  
+                  {/* Ссылки с иконками */}
+                  {profile.links && profile.links.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {profile.links.map(link => (
+                        <a
+                          key={link.id}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-blue-400 transition"
+                          title={link.platform?.name}
+                        >
+                          {link.platform?.icon_url ? (
+                            <img 
+                              src={`http://localhost:8000${link.platform.icon_url}`} 
+                              alt={link.platform.name} 
+                              className="w-3 h-3 object-contain"
+                              onError={(e) => { e.target.style.display = 'none'; }}
+                            />
+                          ) : (
+                          <span>{link.platform?.name || 'Link'}</span>
+                          )}
+                          
+                        </a>
+                      ))}
                     </div>
                   )}
                 </div>
-
+                
+                {/* Статистика */}
                 <div className="flex gap-4 mt-3">
                   <div className="text-center"><div className="text-sm font-light">{photos.length}</div><div className="text-[10px] text-gray-600">PHOTOS</div></div>
                   <div className="text-center"><div className="text-sm font-light">{videos.length}</div><div className="text-[10px] text-gray-600">VIDEOS</div></div>
@@ -375,15 +400,12 @@ const ProfilePage = () => {
               <div className="space-y-1">
                 {profile.employments.map((job, idx) => (
                   <div key={idx} className="flex items-baseline gap-2 text-sm flex-wrap">
-                    {/* Профессия */}
                     <button
                       onClick={() => alert(`Поиск профилей с профессией: ${job.profession_name}`)}
                       className="font-medium text-white hover:text-blue-400 transition"
                     >
                       {job.profession_name}
                     </button>
-                    
-                    {/* Разделитель и компания */}
                     {job.company_name && (
                       <>
                         <span className="text-gray-500">|</span>
@@ -395,8 +417,6 @@ const ProfilePage = () => {
                         </button>
                       </>
                     )}
-                    
-                    {/* Даты работы */}
                     {(job.start_year || job.end_year) && (
                       <>
                         <span className="text-gray-500">|</span>
@@ -408,28 +428,21 @@ const ProfilePage = () => {
                         </span>
                       </>
                     )}
-                    
-                    {/* Зеленая галочка для текущей работы */}
-                    {job.is_current && (
-                      <span className="text-green-500 text-sm" title="Current job">✓</span>
-                    )}
+                    {job.is_current && <span className="text-green-500 text-sm" title="Current job">✓</span>}
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          
           {connections.length > 0 && (
             <div className="border-b border-gray-800 p-4">
               <h2 className="text-xs font-light tracking-wider text-gray-500 mb-3">CONNECTIONS</h2>
               <div className="flex gap-3 flex-wrap">
                 {connections.map(conn => {
-                  // Используем connected_profile, если есть, иначе только ID
                   const connectedProfile = conn.connected_profile;
                   const profileId = connectedProfile?.id || conn.connected_profile_id;
                   if (!profileId) return null;
-                  
                   const profileName = connectedProfile 
                     ? [connectedProfile.first_name, connectedProfile.last_name].filter(Boolean).join(' ') 
                     : `ID ${profileId}`;
@@ -437,7 +450,6 @@ const ProfilePage = () => {
                     ? `http://localhost:8000${connectedProfile.photos[0].url}` 
                     : null;
                   const initials = profileName.slice(0, 2).toUpperCase();
-
                   return (
                     <div key={profileId} className="text-center cursor-pointer hover:opacity-80" onClick={() => navigate(`/profile/${profileId}`)}>
                       <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-800 mx-auto mb-1">
@@ -469,7 +481,6 @@ const ProfilePage = () => {
             </label>
           </div>
 
-
           {/* Tabs */}
           <div className="flex border-b border-gray-800">
             <button className={`px-6 py-3 text-xs ${activeTab === 'photos' ? 'text-white border-b border-white' : 'text-gray-500'}`} onClick={() => setActiveTab('photos')}>PHOTOS</button>
@@ -477,7 +488,7 @@ const ProfilePage = () => {
             <button className={`px-6 py-3 text-xs ${activeTab === 'tags' ? 'text-white border-b border-white' : 'text-gray-500'}`} onClick={() => setActiveTab('tags')}>TAGGED</button>
           </div>
 
-          {/* Photos Gallery - Masonry with avatar button */}
+          {/* Photos Gallery */}
           {activeTab === 'photos' && (
             <div className="p-4">
               {photos.length > 0 ? (
@@ -487,14 +498,12 @@ const ProfilePage = () => {
                       <div className="cursor-pointer" onClick={() => openSlideshow(photos, idx, false)}>
                         <img src={`http://localhost:8000${photo.url}`} alt="Фото" className="w-full h-auto object-cover" />
                       </div>
-                      
-                      {/* Кнопка удаления (крестик) */}
                       <button
                         onClick={async () => {
                           if (confirm('Удалить это фото?')) {
                             try {
                               await photoApi.delete(photo.id);
-                              await loadAllData(); // перезагрузить данные профиля
+                              await loadAllData();
                             } catch (error) {
                               console.error('Error deleting photo:', error);
                               alert('Ошибка удаления фото');
@@ -509,8 +518,6 @@ const ProfilePage = () => {
                           <line x1="6" y1="6" x2="18" y2="18" />
                         </svg>
                       </button>
-                      
-                      {/* Кнопка установки аватарки (звездочка) */}
                       <button
                         onClick={() => setAsAvatar(photo.id)}
                         className={`absolute top-2 left-2 p-1.5 rounded transition ${photo.is_avatar ? 'bg-yellow-500 text-black' : 'bg-black/60 text-white hover:bg-yellow-500 hover:text-black'}`}
@@ -518,14 +525,11 @@ const ProfilePage = () => {
                       >
                         <StarIcon filled={photo.is_avatar} />
                       </button>
-                      
-                      {/* Бейдж "AVATAR" если это аватар */}
                       {photo.is_avatar && (
                         <div className="absolute bottom-2 left-2 bg-yellow-500 text-black text-[8px] px-1.5 py-0.5 rounded font-medium">
                           AVATAR
                         </div>
                       )}
-                      
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 opacity-0 group-hover:opacity-100 transition">
                         <div className="flex gap-2 text-[10px] text-gray-300">
                           {photo.season && <span>🌸 {photo.season.name}</span>}
@@ -582,7 +586,6 @@ const ProfilePage = () => {
               {tags.length > 0 ? (
                 <div className="columns-2 md:columns-3 gap-2 space-y-2">
                   {(() => {
-                    // Собираем уникальные фото из всех тегов
                     const uniqueTaggedPhotos = [];
                     const seenIds = new Set();
                     tags.forEach(t => {
@@ -595,8 +598,7 @@ const ProfilePage = () => {
                         });
                       }
                     });
-                    
-                    return tags.map((tag, idx) => {
+                    return tags.map((tag) => {
                       const currentIndex = uniqueTaggedPhotos.findIndex(p => p.id === tag.photo_id);
                       return (
                         <div 

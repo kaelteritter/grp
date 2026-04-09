@@ -205,7 +205,11 @@ const ProfileCard = ({ profile, onEdit, onDelete, onAvatarClick, onNameClick }) 
                 className="text-[9px] bg-white/10 px-1.5 py-0.5 hover:bg-white/20 transition rounded"
                 onClick={e => e.stopPropagation()}
               >
-                {link.platform.name}
+              {link.platform?.icon_url ? (
+                <img src={`http://localhost:8000${link.platform.icon_url}`} alt={link.platform.name} className="w-3 h-3 object-contain" />
+              ) : (
+                <span>{link.platform.name}</span>
+              )}
               </a>
             ))}
           </div>

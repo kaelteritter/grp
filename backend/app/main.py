@@ -77,8 +77,6 @@ app.include_router(daytime.router, prefix="/api/v1")
 app.include_router(event.router, prefix="/api/v1") 
 app.include_router(photo_tag.router, prefix="/api/v1") 
 
-print("[Main] API routers registered with prefix /api/v1")
-
 
 # ================== HEALTHCHECK ==================
 @app.get("/health")

@@ -98,6 +98,16 @@ const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, 
     setLinks(links.filter((_, i) => i !== index));
   };
 
+  // Функция для построения полного URL из base_url и введённого пользователем значения
+  const buildFullUrl = (platform, userInput) => {
+    if (!platform?.base_url) return userInput;
+    let input = userInput.trim();
+    if (input.startsWith('http://') || input.startsWith('https://')) return input;
+    const base = platform.base_url.replace(/\/$/, '');
+    const path = input.replace(/^\//, '');
+    return `${base}/${path}`;
+  };
+
   const handlePhotoChange = (e) => {
     const files = Array.from(e.target.files);
     setPhotos(prev => [...prev, ...files]);
@@ -168,7 +178,15 @@ const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, 
         hair_color: formData.hair_color || null,
       };
 
-      await onSave(profileData, links.filter(l => l.url && l.platform_id), photos, videos, professionId, companyId, connections);
+      // Обрабатываем ссылки: строим полный URL
+      const processedLinks = links.map(link => {
+        if (!link.url || !link.platform_id) return null;
+        const platform = platforms.find(p => p.id === parseInt(link.platform_id));
+        const fullUrl = buildFullUrl(platform, link.url);
+        return { ...link, url: fullUrl };
+      }).filter(Boolean);
+
+      await onSave(profileData, processedLinks, photos, videos, professionId, companyId, connections);
       onClose();
     } catch (err) {
       setError(err.message || 'Ошибка сохранения');
@@ -328,7 +346,13 @@ const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, 
                       <option value="">Platform</option>
                       {safePlatforms.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
-                    <input type="url" value={link.url} onChange={e => updateLink(idx, 'url', e.target.value)} placeholder="https://" className="flex-1 bg-transparent border-b border-gray-800 py-2 text-xs" />
+                    <input
+                      type="text"
+                      value={link.url}
+                      onChange={e => updateLink(idx, 'url', e.target.value)}
+                      placeholder="username or path"
+                      className="flex-1 bg-transparent border-b border-gray-800 py-2 text-xs"
+                    />
                     <button type="button" onClick={() => removeLink(idx)} className="text-gray-500 hover:text-red-500">✖</button>
                   </div>
                 ))}
