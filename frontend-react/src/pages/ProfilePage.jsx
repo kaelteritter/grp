@@ -487,33 +487,51 @@ const ProfilePage = () => {
                       <div className="cursor-pointer" onClick={() => openSlideshow(photos, idx, false)}>
                         <img src={`http://localhost:8000${photo.url}`} alt="Фото" className="w-full h-auto object-cover" />
                       </div>
-
-                      {/* Кнопка установки аватарки - звездочка в правом верхнем углу */}
+                      
+                      {/* Кнопка удаления (крестик) */}
+                      <button
+                        onClick={async () => {
+                          if (confirm('Удалить это фото?')) {
+                            try {
+                              await photoApi.delete(photo.id);
+                              await loadAllData(); // перезагрузить данные профиля
+                            } catch (error) {
+                              console.error('Error deleting photo:', error);
+                              alert('Ошибка удаления фото');
+                            }
+                          }
+                        }}
+                        className="absolute top-2 right-2 p-1.5 bg-black/60 text-white hover:bg-red-500 transition rounded"
+                        title="Delete photo"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                      
+                      {/* Кнопка установки аватарки (звездочка) */}
                       <button
                         onClick={() => setAsAvatar(photo.id)}
-                        className={`absolute top-2 right-2 p-1.5 rounded transition ${photo.is_avatar ? 'bg-yellow-500 text-black' : 'bg-black/60 text-white hover:bg-yellow-500 hover:text-black'}`}
+                        className={`absolute top-2 left-2 p-1.5 rounded transition ${photo.is_avatar ? 'bg-yellow-500 text-black' : 'bg-black/60 text-white hover:bg-yellow-500 hover:text-black'}`}
                         title={photo.is_avatar ? "Current avatar" : "Set as avatar"}
                       >
                         <StarIcon filled={photo.is_avatar} />
                       </button>
-
+                      
                       {/* Бейдж "AVATAR" если это аватар */}
                       {photo.is_avatar && (
                         <div className="absolute bottom-2 left-2 bg-yellow-500 text-black text-[8px] px-1.5 py-0.5 rounded font-medium">
                           AVATAR
                         </div>
                       )}
-
+                      
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 opacity-0 group-hover:opacity-100 transition">
-                        <div className="flex flex-wrap gap-2 text-[10px] text-gray-300">
+                        <div className="flex gap-2 text-[10px] text-gray-300">
                           {photo.season && <span>🌸 {photo.season.name}</span>}
                           {photo.daytime && <span>☀️ {photo.daytime.name}</span>}
                           {photo.event && <span>🎉 {photo.event.name}</span>}
-                          {photo.clothes && photo.clothes.length > 0 && (
-                            <span className="flex gap-1">
-                              👕 {photo.clothes.map(c => c.name).join(', ')}
-                            </span>
-                          )}
+                          {photo.clothes?.length > 0 && <span>👕 {photo.clothes.length}</span>}
                         </div>
                       </div>
                     </div>
@@ -559,7 +577,6 @@ const ProfilePage = () => {
           )}
 
           {/* Tagged Photos Gallery */}
-          console.log('SlideshowModal received photos:', photos);
           {activeTab === 'tags' && (
             <div className="p-4">
               {tags.length > 0 ? (
