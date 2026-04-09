@@ -369,7 +369,7 @@ const ProfilePage = () => {
                             <img 
                               src={`http://localhost:8000${link.platform.icon_url}`} 
                               alt={link.platform.name} 
-                              className="w-3 h-3 object-contain"
+                              className="w-3 h-3 object-contain platform-icon"
                               onError={(e) => { e.target.style.display = 'none'; }}
                             />
                           ) : (

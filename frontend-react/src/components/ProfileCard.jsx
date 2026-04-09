@@ -206,7 +206,7 @@ const ProfileCard = ({ profile, onEdit, onDelete, onAvatarClick, onNameClick }) 
                 onClick={e => e.stopPropagation()}
               >
               {link.platform?.icon_url ? (
-                <img src={`http://localhost:8000${link.platform.icon_url}`} alt={link.platform.name} className="w-3 h-3 object-contain" />
+                <img src={`http://localhost:8000${link.platform.icon_url}`} alt={link.platform.name} className="w-3 h-3 object-contain platform-icon"  />
               ) : (
                 <span>{link.platform.name}</span>
               )}
