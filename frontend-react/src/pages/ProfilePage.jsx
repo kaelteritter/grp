@@ -55,6 +55,30 @@ const StarIcon = ({ filled }) => (
   </svg>
 );
 
+const SeasonIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="12" cy="12" r="10" />
+    <path d="M12 2v4M12 22v-4M2 12h4M22 12h-4" />
+    <path d="M12 8v8M8 12h8" />
+  </svg>
+);
+
+const DaytimeIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="12" cy="12" r="5" />
+    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+  </svg>
+);
+
+const EventIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+    <line x1="16" y1="2" x2="16" y2="6" />
+    <line x1="8" y1="2" x2="8" y2="6" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+  </svg>
+);
+
 const ProfilePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -270,6 +294,20 @@ const ProfilePage = () => {
       </div>
     );
   }
+
+  const seasonIcons = {
+  'зима': <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M2 12h20M4.5 4.5l15 15M19.5 4.5l-15 15"/></svg>,
+  'весна': <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.5 4.5l3 3M16.5 16.5l3 3M4.5 19.5l3-3M16.5 7.5l3-3"/><circle cx="12" cy="12" r="3"/></svg>,
+  'лето': <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M1 12h2M21 12h2M4.5 4.5l1.5 1.5M18 18l1.5 1.5M4.5 19.5l1.5-1.5M18 6l1.5-1.5"/></svg>,
+  'осень': <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><path d="M12 12c-2 0-4-2-4-4s2-4 4-4 4 2 4 4-2 4-4 4z"/><path d="M12 12c-2 0-4 2-4 4s2 4 4 4 4-2 4-4-2-4-4-4z"/></svg>,
+};
+
+  const daytimeIcons = {
+    'утро': <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="5"/><path d="M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg>,
+    'день': <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="6"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>,
+    'вечер': <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2c-5.5 0-10 4.5-10 10s4.5 10 10 10c2 0 3.8-0.6 5.3-1.6C14.5 19.4 13 16.4 13 13c0-3.4 1.5-6.4 4.3-8.4C15.8 2.6 14 2 12 2z"/></svg>,
+    'ночь': <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>,
+  };
 
   return (
     <div className="min-h-screen bg-black">
@@ -531,14 +569,31 @@ const ProfilePage = () => {
                         </div>
                       )}
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 opacity-0 group-hover:opacity-100 transition">
-                        <div className="flex gap-2 text-[10px] text-gray-300">
-                          {photo.season && <span>🌸 {photo.season.name}</span>}
-                          {photo.daytime && <span>☀️ {photo.daytime.name}</span>}
-                          {photo.event && <span>🎉 {photo.event.name}</span>}
-                          {photo.clothes && photo.clothes.length > 0 && (
-                            <span>👕 {photo.clothes.map(c => c.name).join(', ')}</span>
+                        <div className="flex flex-wrap gap-2 text-[10px] text-gray-300 items-center">
+                          {photo.season && (
+                            <div className="flex items-center gap-1" title={photo.season.name}>
+                              {seasonIcons[photo.season.name.toLowerCase()] || <SeasonIcon />}
+                            </div>
+                          )}
+                          {photo.daytime && (
+                            <div className="flex items-center gap-1" title={photo.daytime.name}>
+                              {daytimeIcons[photo.daytime.name.toLowerCase()] || <DaytimeIcon />}
+                            </div>
+                          )}
+                          {photo.event && (
+                            <div className="flex items-center gap-1">
+                              <EventIcon />
+                              <span>{photo.event.name}</span>
+                            </div>
                           )}
                         </div>
+                        {photo.clothes && photo.clothes.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1 text-[10px] text-gray-300">
+                            {photo.clothes.map(c => (
+                              <span key={c.id} className="bg-white/10 px-1.5 py-0.5 rounded leading-tight">#{c.name.replace(/\s/g, '')}</span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
