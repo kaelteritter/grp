@@ -43,7 +43,7 @@ const EditIcon = () => (
   </svg>
 );
 
-const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVideo = false, onUpdate }) => {
+const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVideo = false, onUpdate, isGlobal = false }) => {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(startIndex);
   const [tags, setTags] = useState([]);
@@ -62,16 +62,16 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
   const [showClothSelect, setShowClothSelect] = useState(false);
   const [hoverVideo, setHoverVideo] = useState(false);
   
-  // Состояния для добавления тега
+  // Состояния для тегов
   const [isTaggingMode, setIsTaggingMode] = useState(false);
   const [tempTagPosition, setTempTagPosition] = useState({ x: 0.5, y: 0.5 });
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState(null);
+  const [editingTag, setEditingTag] = useState(null);
   const imageRef = useRef(null);
   const searchDebounceRef = useRef(null);
-  const [editingTag, setEditingTag] = useState(null); // { id, x, y, profile }
 
   const safePhotos = photos && Array.isArray(photos) ? photos : [];
 
@@ -127,16 +127,15 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
       console.error('Error loading photo attributes:', error);
     }
   };
-  
+
   useEffect(() => {
     if (safePhotos[currentIndex]?.id) {
-      console.log('Loading tags for photo ID:', safePhotos[currentIndex].id);
       loadTags();
       loadPhotoAttributes();
     }
   }, [currentIndex, safePhotos]);
 
-  // Поиск профилей (debounce)
+  // Поиск профилей
   useEffect(() => {
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     if (searchQuery.trim().length < 2) {
@@ -158,7 +157,6 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
     return () => clearTimeout(searchDebounceRef.current);
   }, [searchQuery]);
 
-  // Обработка клика по изображению для установки координат
   const handleImageClick = (e) => {
     if (!isTaggingMode) return;
     const rect = imageRef.current.getBoundingClientRect();
@@ -167,7 +165,6 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
     setTempTagPosition({ x: Math.min(1, Math.max(0, x)), y: Math.min(1, Math.max(0, y)) });
   };
 
-  // Добавление нового тега
   const handleSaveTag = async () => {
     if (!selectedProfile) {
       alert('Выберите профиль');
@@ -196,13 +193,10 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
     }
   };
 
-  // Удаление тега
   const handleDeleteTag = async (tagId) => {
     if (!confirm('Удалить этот тег?')) return;
     try {
-      await fetch(`http://localhost:8000/api/v1/photo-tags/${tagId}`, {
-        method: 'DELETE',
-      });
+      await fetch(`http://localhost:8000/api/v1/photo-tags/${tagId}`, { method: 'DELETE' });
       await loadTags();
       if (onUpdate) onUpdate();
     } catch (error) {
@@ -211,26 +205,21 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
     }
   };
 
-  // Редактирование тега – переключение в режим перемещения точки
   const startEditTag = (tag) => {
     setEditingTag(tag);
     setTempTagPosition({ x: tag.x, y: tag.y });
-    setIsTaggingMode(true); // используем тот же режим, что и для добавления
+    setIsTaggingMode(true);
     setSelectedProfile(tag.profile);
     setSearchQuery(`${tag.profile.first_name} ${tag.profile.last_name}`);
   };
 
-  // Сохранение изменений тега (обновление координат)
   const handleUpdateTag = async () => {
     if (!editingTag) return;
     try {
       await fetch(`http://localhost:8000/api/v1/photo-tags/${editingTag.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          x: tempTagPosition.x,
-          y: tempTagPosition.y,
-        }),
+        body: JSON.stringify({ x: tempTagPosition.x, y: tempTagPosition.y }),
       });
       setIsTaggingMode(false);
       setEditingTag(null);
@@ -244,7 +233,6 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
     }
   };
 
-  // Отмена режима редактирования/добавления
   const cancelTagging = () => {
     setIsTaggingMode(false);
     setEditingTag(null);
@@ -277,7 +265,6 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
   };
 
   const handleUpdateClothes = async (clothIds) => {
-    console.log('Saving clothes:', clothIds);
     if (!safePhotos[currentIndex]?.id) return;
     setUpdating(true);
     try {
@@ -315,7 +302,15 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
   }, [isOpen, currentIndex, safePhotos.length]);
 
   const currentPhoto = safePhotos[currentIndex];
-  const fullName = profile ? [profile.last_name, profile.first_name, profile.middle_name].filter(Boolean).join(' ') || 'Без имени' : 'Без имени';
+  
+  // ВЫЧИСЛЯЕМ ТЕКУЩИЙ ПРОФИЛЬ ДЛЯ БОКОВОЙ ПАНЕЛИ
+  const currentProfile = isGlobal ? currentPhoto?.profile : profile;
+  const currentProfileFullName = currentProfile
+    ? [currentProfile.last_name, currentProfile.first_name, currentProfile.middle_name].filter(Boolean).join(' ') || 'Без имени'
+    : 'Без имени';
+  const currentProfileAvatar = currentProfile?.photos?.[0]?.url
+    ? `http://localhost:8000${currentProfile.photos[0].url}`
+    : null;
 
   if (!isOpen || safePhotos.length === 0 || !currentPhoto) return null;
 
@@ -345,7 +340,6 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
           ) : (
             <div className="relative" ref={imageRef} onClick={handleImageClick}>
               <img src={`http://localhost:8000${currentPhoto.url}`} alt="Фото" className="max-w-full max-h-screen object-contain" />
-              {/* Отображение существующих тегов */}
               {tags.map(tag => (
                 <div
                   key={tag.id}
@@ -361,7 +355,6 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
                   )}
                 </div>
               ))}
-              {/* Временная точка для нового тега */}
               {isTaggingMode && (
                 <div
                   className="absolute w-6 h-6 bg-red-500 rounded-full border-2 border-white animate-pulse"
@@ -372,102 +365,111 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
           )}
         </div>
 
+        {/* Правая панель – ИСПРАВЛЕНО: используем currentProfile */}
         <div className="absolute right-0 top-0 h-full w-80 bg-black/80 backdrop-blur p-4 border-l border-gray-800 overflow-y-auto">
-          {/* Информация о профиле */}
-          <div className="text-center cursor-pointer hover:opacity-80 transition mb-6" onClick={() => { onClose(); navigate(`/profile/${profile?.id}`); }}>
+          {/* Информация о профиле (аватарка и имя) */}
+          <div
+            className="text-center cursor-pointer hover:opacity-80 transition mb-6"
+            onClick={() => {
+              onClose();
+              if (currentProfile) navigate(`/profile/${currentProfile.id}`);
+            }}
+          >
             <div className="w-16 h-16 rounded-full mx-auto mb-3 overflow-hidden bg-gray-800">
-              {profile?.photos?.[0] ? (
-                <img src={`http://localhost:8000${profile.photos[0].url}`} alt={fullName} className="w-full h-full object-cover" />
+              {currentProfileAvatar ? (
+                <img src={currentProfileAvatar} alt={currentProfileFullName} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-xl">{fullName.slice(0, 2).toUpperCase()}</div>
+                <div className="w-full h-full flex items-center justify-center text-xl">
+                  {currentProfileFullName.slice(0, 2).toUpperCase()}
+                </div>
               )}
             </div>
-            <div className="text-sm font-light">{fullName}</div>
+            <div className="text-sm font-light">{currentProfileFullName}</div>
           </div>
 
-          {/* Список тегов в сайдбаре с кнопками редактирования/удаления */}
-        {tags.length > 0 && (
-          <div className="mb-4">
-            <h3 className="text-xs text-gray-500 mb-2">TAGGED PEOPLE</h3>
-            <div className="space-y-2">
-              {tags.map(tag => (
-                <div key={tag.id} className="flex items-center gap-2 text-xs hover:bg-gray-800 p-2 rounded group">
-                  <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-700 cursor-pointer" onClick={() => navigate(`/profile/${tag.profile_id}`)}>
-                    {tag.profile?.photos?.[0] ? (
-                      <img src={`http://localhost:8000${tag.profile.photos[0].url}`} className="w-full h-full object-cover" alt="" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[10px]">{tag.profile?.first_name?.[0]}{tag.profile?.last_name?.[0]}</div>
-                    )}
-                  </div>
-                  <div className="flex-1 cursor-pointer" onClick={() => navigate(`/profile/${tag.profile_id}`)}>
-                    <div className="font-medium">{tag.profile?.first_name} {tag.profile?.last_name}</div>
-                  </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
-                    <button onClick={() => startEditTag(tag)} className="text-gray-400 hover:text-white p-1" title="Edit position">
-                      <EditIcon />
-                    </button>
-                    <button onClick={() => handleDeleteTag(tag.id)} className="text-gray-400 hover:text-red-500 p-1" title="Delete tag">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-13"/><path d="M9 4h6"/></svg>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Форма добавления/редактирования тега */}
-        {!isTaggingMode ? (
-          <button onClick={() => setIsTaggingMode(true)} className="w-full text-xs py-2 border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 transition mb-4 rounded">
-            + ADD TAG
-          </button>
-        ) : (
-          <div className="mb-4 p-3 bg-gray-900 rounded space-y-2">
-            <div className="text-xs text-gray-300">Click on the photo to set position</div>
-            <div className="text-[10px] text-gray-500">Position: ({tempTagPosition.x.toFixed(2)}, {tempTagPosition.y.toFixed(2)})</div>
-            <input
-              type="text"
-              placeholder="Search profile..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded p-1 text-xs"
-            />
-            {isSearching && <div className="text-[10px] text-gray-400">Searching...</div>}
-            {searchResults.length > 0 && (
-              <div className="max-h-32 overflow-y-auto space-y-1">
-                {searchResults.map(p => (
-                  <div
-                    key={p.id}
-                    className={`flex items-center gap-2 p-1 cursor-pointer hover:bg-gray-700 rounded ${selectedProfile?.id === p.id ? 'bg-blue-900' : ''}`}
-                    onClick={() => setSelectedProfile(p)}
-                  >
-                    <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-600">
-                      {p.photos?.[0] ? (
-                        <img src={`http://localhost:8000${p.photos[0].url}`} className="w-full h-full object-cover" alt="" />
+          {/* Теги */}
+          {tags.length > 0 && (
+            <div className="mb-4">
+              <h3 className="text-xs text-gray-500 mb-2">TAGGED PEOPLE</h3>
+              <div className="space-y-2">
+                {tags.map(tag => (
+                  <div key={tag.id} className="flex items-center gap-2 text-xs hover:bg-gray-800 p-2 rounded group">
+                    <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-700 cursor-pointer" onClick={() => navigate(`/profile/${tag.profile_id}`)}>
+                      {tag.profile?.photos?.[0] ? (
+                        <img src={`http://localhost:8000${tag.profile.photos[0].url}`} className="w-full h-full object-cover" alt="" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[8px]">{p.first_name?.[0]}{p.last_name?.[0]}</div>
+                        <div className="w-full h-full flex items-center justify-center text-[10px]">{tag.profile?.first_name?.[0]}{tag.profile?.last_name?.[0]}</div>
                       )}
                     </div>
-                    <span className="text-xs">{p.first_name} {p.last_name}</span>
+                    <div className="flex-1 cursor-pointer" onClick={() => navigate(`/profile/${tag.profile_id}`)}>
+                      <div className="font-medium">{tag.profile?.first_name} {tag.profile?.last_name}</div>
+                    </div>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                      <button onClick={() => startEditTag(tag)} className="text-gray-400 hover:text-white p-1" title="Edit position">
+                        <EditIcon />
+                      </button>
+                      <button onClick={() => handleDeleteTag(tag.id)} className="text-gray-400 hover:text-red-500 p-1" title="Delete tag">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-13"/><path d="M9 4h6"/></svg>
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
-            )}
-            {selectedProfile && (
-              <div className="text-xs text-green-400">Selected: {selectedProfile.first_name} {selectedProfile.last_name}</div>
-            )}
-            <div className="flex gap-2">
-              {editingTag ? (
-                <button onClick={handleUpdateTag} className="flex-1 text-xs py-1 bg-blue-500 text-white rounded hover:bg-blue-600">UPDATE</button>
-              ) : (
-                <button onClick={handleSaveTag} className="flex-1 text-xs py-1 bg-blue-500 text-white rounded hover:bg-blue-600">SAVE</button>
-              )}
-              <button onClick={cancelTagging} className="flex-1 text-xs py-1 bg-gray-700 text-white rounded hover:bg-gray-600">CANCEL</button>
             </div>
-          </div>
-        )}
+          )}
 
-          {/* Атрибуты (сезон, время суток, событие, одежда) – без изменений */}
+          {/* Форма добавления/редактирования тега */}
+          {!isTaggingMode ? (
+            <button onClick={() => setIsTaggingMode(true)} className="w-full text-xs py-2 border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 transition mb-4 rounded">
+              + ADD TAG
+            </button>
+          ) : (
+            <div className="mb-4 p-3 bg-gray-900 rounded space-y-2">
+              <div className="text-xs text-gray-300">Click on the photo to set position</div>
+              <div className="text-[10px] text-gray-500">Position: ({tempTagPosition.x.toFixed(2)}, {tempTagPosition.y.toFixed(2)})</div>
+              <input
+                type="text"
+                placeholder="Search profile..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-gray-800 border border-gray-700 rounded p-1 text-xs"
+              />
+              {isSearching && <div className="text-[10px] text-gray-400">Searching...</div>}
+              {searchResults.length > 0 && (
+                <div className="max-h-32 overflow-y-auto space-y-1">
+                  {searchResults.map(p => (
+                    <div
+                      key={p.id}
+                      className={`flex items-center gap-2 p-1 cursor-pointer hover:bg-gray-700 rounded ${selectedProfile?.id === p.id ? 'bg-blue-900' : ''}`}
+                      onClick={() => setSelectedProfile(p)}
+                    >
+                      <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-600">
+                        {p.photos?.[0] ? (
+                          <img src={`http://localhost:8000${p.photos[0].url}`} className="w-full h-full object-cover" alt="" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[8px]">{p.first_name?.[0]}{p.last_name?.[0]}</div>
+                        )}
+                      </div>
+                      <span className="text-xs">{p.first_name} {p.last_name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {selectedProfile && (
+                <div className="text-xs text-green-400">Selected: {selectedProfile.first_name} {selectedProfile.last_name}</div>
+              )}
+              <div className="flex gap-2">
+                {editingTag ? (
+                  <button onClick={handleUpdateTag} className="flex-1 text-xs py-1 bg-blue-500 text-white rounded hover:bg-blue-600">UPDATE</button>
+                ) : (
+                  <button onClick={handleSaveTag} className="flex-1 text-xs py-1 bg-blue-500 text-white rounded hover:bg-blue-600">SAVE</button>
+                )}
+                <button onClick={cancelTagging} className="flex-1 text-xs py-1 bg-gray-700 text-white rounded hover:bg-gray-600">CANCEL</button>
+              </div>
+            </div>
+          )}
+
+          {/* Атрибуты */}
           <div>
             <h3 className="text-xs text-gray-500 mb-2">ATTRIBUTES</h3>
             <div className="space-y-3">
