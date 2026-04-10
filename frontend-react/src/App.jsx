@@ -38,10 +38,89 @@ function HomePage() {
   const [currentSlideshowProfile, setCurrentSlideshowProfile] = useState(null);
   const [editingProfile, setEditingProfile] = useState(null);
   const [slideshowStartIndex, setSlideshowStartIndex] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [skip, setSkip] = useState(0);
+
+  const limit = 20;
+
+  useEffect(() => {
+    loadReferenceData();
+  }, []);
+
+  // Первая загрузка профилей
+  useEffect(() => {
+    loadProfiles(0, false);
+  }, []);
 
   useEffect(() => {
     loadAllData();
   }, []);
+
+    // Бесконечный скролл
+  useEffect(() => {
+    const handleScroll = () => {
+      if (loadingMore || !hasMore) return;
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      if (scrollTop + windowHeight >= documentHeight - 200) {
+        loadProfiles(skip + limit, true);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [loadingMore, hasMore, skip]);
+
+  const loadReferenceData = async () => {
+    try {
+      const [locationsRes, regionsRes, countriesRes, platformsRes, professionsRes, companiesRes, addressesRes] = await Promise.all([
+        locationApi.getAll(),
+        regionApi.getAll(),
+        countryApi.getAll(),
+        platformApi.getAll(),
+        fetch('http://localhost:8000/api/v1/professions/').then(r => r.json()).catch(() => []),
+        fetch('http://localhost:8000/api/v1/companies/').then(r => r.json()).catch(() => []),
+        fetch('http://localhost:8000/api/v1/addresses/').then(r => r.json()).catch(() => []),
+      ]);
+      setLocations(locationsRes.data || []);
+      setRegions(regionsRes.data || []);
+      setCountries(countriesRes.data || []);
+      setPlatforms(platformsRes.data || []);
+      setProfessions(professionsRes);
+      setCompanies(companiesRes);
+      setAddresses(addressesRes);
+    } catch (error) {
+      console.error('Error loading reference data:', error);
+    }
+  };
+
+  const loadProfiles = async (newSkip, append) => {
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
+    try {
+      const res = await profileApi.getAll(newSkip, limit);
+      const newProfiles = res.data || [];
+      if (append) {
+        setProfiles(prev => [...prev, ...newProfiles]);
+      } else {
+        setProfiles(newProfiles);
+      }
+      setHasMore(newProfiles.length === limit);
+      setSkip(newSkip + (append ? limit : 0));
+    } catch (error) {
+      console.error('Error loading profiles:', error);
+    } finally {
+      if (append) {
+        setLoadingMore(false);
+      } else {
+        setLoading(false);
+      }
+    }
+  };
 
   const loadAllData = async () => {
     try {
@@ -266,6 +345,14 @@ function HomePage() {
             />
           ))}
         </div>
+        {loadingMore && (
+          <div className="flex justify-center py-4">
+            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
+        {!hasMore && profiles.length > 0 && (
+          <div className="text-center text-gray-500 text-xs py-4">No more profiles</div>
+        )}
       </main>
 
       <ProfileModal

@@ -32,7 +32,7 @@ const request = async (endpoint, options = {}) => {
 };
 
 export const profileApi = {
-  getAll: () => request('/profiles/'),
+  getAll: (skip = 0, limit = 20) => request(`/profiles/?skip=${skip}&limit=${limit}`),
   get: (id) => request(`/profiles/${id}`),
   create: (data) => {
     // Убираем undefined значения и преобразуем пустые строки в null
