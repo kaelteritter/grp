@@ -535,7 +535,9 @@ const ProfilePage = () => {
                           {photo.season && <span>🌸 {photo.season.name}</span>}
                           {photo.daytime && <span>☀️ {photo.daytime.name}</span>}
                           {photo.event && <span>🎉 {photo.event.name}</span>}
-                          {photo.clothes?.length > 0 && <span>👕 {photo.clothes.length}</span>}
+                          {photo.clothes && photo.clothes.length > 0 && (
+                            <span>👕 {photo.clothes.map(c => c.name).join(', ')}</span>
+                          )}
                         </div>
                       </div>
                     </div>

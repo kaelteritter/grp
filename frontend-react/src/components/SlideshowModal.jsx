@@ -122,7 +122,8 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
       setSelectedSeason(photo.season_id || '');
       setSelectedDaytime(photo.daytime_id || '');
       setSelectedEvent(photo.event_id || '');
-      setSelectedClothes(photo.cloth_ids || []);
+      // Извлекаем ID одежды из массива clothes (если есть)
+      setSelectedClothes(photo.clothes ? photo.clothes.map(c => c.id) : []);
     } catch (error) {
       console.error('Error loading photo attributes:', error);
     }
@@ -276,13 +277,22 @@ useEffect(() => {
     if (!safePhotos[currentIndex]?.id) return;
     setUpdating(true);
     try {
-      await fetch(`http://localhost:8000/api/v1/photos/${safePhotos[currentIndex].id}`, {
+      const response = await fetch(`http://localhost:8000/api/v1/photos/${safePhotos[currentIndex].id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cloth_ids: clothIds }),
       });
+      // Обновляем локальное состояние немедленно, чтобы чекбоксы остались отмеченными
+      setSelectedClothes(clothIds);
+      // Также обновляем данные в родительском компоненте, если нужно
       if (onUpdate) onUpdate();
       setShowClothSelect(false);
+      // Дополнительно можно обновить атрибуты, но без перезаписи одежды
+      const data = await response.json();
+      // Обновляем другие атрибуты, если они изменились
+      if (data.season_id !== undefined) setSelectedSeason(data.season_id);
+      if (data.daytime_id !== undefined) setSelectedDaytime(data.daytime_id);
+      if (data.event_id !== undefined) setSelectedEvent(data.event_id);
     } catch (error) {
       console.error('Error updating clothes:', error);
     } finally {
