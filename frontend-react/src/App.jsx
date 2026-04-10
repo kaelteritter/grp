@@ -7,6 +7,7 @@ import RegionModal from './components/RegionModal';
 import CountryModal from './components/CountryModal';
 import SimpleModal from './components/SimpleModal';
 import SlideshowModal from './components/SlideshowModal';
+import AddressModal from './components/AddressModal';
 import ProfilePage from './pages/ProfilePage';
 import { profileApi, photoApi, platformApi, locationApi, regionApi, countryApi, linkApi } from './services/api';
 
@@ -317,16 +318,10 @@ function HomePage() {
         ]}
       />
 
-      <SimpleModal
+      <AddressModal
         isOpen={addressModalOpen}
         onClose={() => setAddressModalOpen(false)}
         onSave={(data) => handleCreateSimple('addresses', data)}
-        title="NEW ADDRESS"
-        fields={[
-          { name: 'street', label: 'Street', type: 'text', required: true },
-          { name: 'house', label: 'House', type: 'text', required: true },
-          { name: 'location_id', label: 'Location ID', type: 'number', description: 'Optional location ID' }
-        ]}
       />
 
       <SimpleModal

@@ -9,9 +9,6 @@ from app import services
 router = APIRouter(prefix="/addresses", tags=["addresses"])
 
 
-def enrich_address(address):
-    """Преобразует модель Address в Pydantic схему"""
-    return AddressReadSchema.model_validate(address, from_attributes=True)
 
 
 @router.post("/", response_model=AddressReadSchema, status_code=status.HTTP_201_CREATED)
@@ -23,7 +20,7 @@ async def create_address(
     Создать новый адрес
     """
     address = await services.create_address(db, address_in)
-    return enrich_address(address)
+    return address
 
 
 @router.get("/", response_model=List[AddressReadSchema])
@@ -37,7 +34,7 @@ async def read_addresses(
     Получить список адресов с фильтрацией по локации
     """
     addresses = await services.read_addresses(db, location_id=location_id, skip=skip, limit=limit)
-    return [enrich_address(address) for address in addresses]
+    return [address for address in addresses]
 
 
 @router.get("/{address_id}", response_model=AddressReadSchema)
@@ -49,7 +46,7 @@ async def read_address(
     Получить адрес по ID
     """
     address = await services.read_address(db, address_id)
-    return enrich_address(address)
+    return address
 
 
 @router.patch("/{address_id}", response_model=AddressReadSchema)
@@ -62,7 +59,7 @@ async def update_address(
     Обновить адрес
     """
     address = await services.update_address(db, address_id, address_in)
-    return enrich_address(address)
+    return address
 
 
 @router.delete("/{address_id}", status_code=status.HTTP_204_NO_CONTENT)
