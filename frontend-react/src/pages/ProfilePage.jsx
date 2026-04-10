@@ -548,7 +548,8 @@ const ProfilePage = () => {
                             }
                           }
                         }}
-                        className="absolute top-2 right-2 p-1.5 bg-black/60 text-white hover:bg-red-500 transition rounded"
+                        className="absolute top-2 right-2 p-1.5 bg-black/60 text-white hover:bg-red-500 transition rounded
+                        opacity-0 group-hover:opacity-100 transition"
                         title="Delete photo"
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -558,7 +559,7 @@ const ProfilePage = () => {
                       </button>
                       <button
                         onClick={() => setAsAvatar(photo.id)}
-                        className={`absolute top-2 left-2 p-1.5 rounded transition ${photo.is_avatar ? 'bg-yellow-500 text-black' : 'bg-black/60 text-white hover:bg-yellow-500 hover:text-black'}`}
+                        className={`absolute top-2 left-2 p-1.5 rounded transition ${photo.is_avatar ? 'bg-yellow-500 text-black' : 'bg-black/60 text-white hover:bg-yellow-500 hover:text-black opacity-0 group-hover:opacity-100 transition'}`}
                         title={photo.is_avatar ? "Current avatar" : "Set as avatar"}
                       >
                         <StarIcon filled={photo.is_avatar} />
@@ -612,7 +613,7 @@ const ProfilePage = () => {
                 {videos.map((video, idx) => (
                   <div 
                     key={video.id} 
-                    className="relative group break-inside-avoid cursor-pointer" 
+                    className="relative group break-inside-avoid cursor-pointer " 
                     onClick={() => openSlideshow(videos, idx, true)}
                     onMouseEnter={() => setHoverVideo(prev => ({ ...prev, [idx]: true }))}
                     onMouseLeave={() => setHoverVideo(prev => ({ ...prev, [idx]: false }))}
@@ -639,7 +640,8 @@ const ProfilePage = () => {
                           }
                         }
                       }}
-                      className="absolute top-2 right-2 p-1.5 bg-black/60 text-white hover:bg-red-500 transition rounded"
+                      className="absolute top-2 right-2 p-1.5 bg-black/60 text-white hover:bg-red-500 transition rounded
+                      opacity-0 group-hover:opacity-100 transition"
                       title="Delete video"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
