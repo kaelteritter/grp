@@ -550,33 +550,55 @@ const ProfilePage = () => {
           {/* Videos Gallery */}
           {activeTab === 'videos' && (
             <div className="p-4">
-              {videos.length > 0 ? (
-                <div className="columns-2 md:columns-3 gap-2 space-y-2">
-                  {videos.map((video, idx) => (
-                    <div 
-                      key={video.id} 
-                      className="relative group break-inside-avoid cursor-pointer" 
-                      onClick={() => openSlideshow(videos, idx, true)}
-                      onMouseEnter={() => setHoverVideo(prev => ({ ...prev, [idx]: true }))}
-                      onMouseLeave={() => setHoverVideo(prev => ({ ...prev, [idx]: false }))}
+            {videos.length > 0 ? (
+              <div className="columns-2 md:columns-3 gap-2 space-y-2">
+                {videos.map((video, idx) => (
+                  <div 
+                    key={video.id} 
+                    className="relative group break-inside-avoid cursor-pointer" 
+                    onClick={() => openSlideshow(videos, idx, true)}
+                    onMouseEnter={() => setHoverVideo(prev => ({ ...prev, [idx]: true }))}
+                    onMouseLeave={() => setHoverVideo(prev => ({ ...prev, [idx]: false }))}
+                  >
+                    <video 
+                      src={`http://localhost:8000${video.url}`} 
+                      className="w-full h-auto object-cover"
+                      muted
+                      loop
+                      playsInline
+                      autoPlay={hoverVideo[idx]}
+                    />
+                    {/* Кнопка удаления видео */}
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if (confirm('Удалить это видео?')) {
+                          try {
+                            await fetch(`http://localhost:8000/api/v1/videos/${video.id}`, { method: 'DELETE' });
+                            await loadAllData();
+                          } catch (error) {
+                            console.error('Error deleting video:', error);
+                            alert('Ошибка удаления видео');
+                          }
+                        }
+                      }}
+                      className="absolute top-2 right-2 p-1.5 bg-black/60 text-white hover:bg-red-500 transition rounded"
+                      title="Delete video"
                     >
-                      <video 
-                        src={`http://localhost:8000${video.url}`} 
-                        className="w-full h-auto object-cover"
-                        muted
-                        loop
-                        playsInline
-                        autoPlay={hoverVideo[idx]}
-                      />
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 opacity-0 group-hover:opacity-100 transition">
-                        <div className="text-[10px] text-gray-300">🎬 {Math.floor(video.duration / 60)}:{String(video.duration % 60).padStart(2, '0')}</div>
-                      </div>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 opacity-0 group-hover:opacity-100 transition">
+                      <div className="text-[10px] text-gray-300">🎬 {Math.floor(video.duration / 60)}:{String(video.duration % 60).padStart(2, '0')}</div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 text-gray-600 text-sm">Нет видео</div>
-              )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-gray-600 text-sm">Нет видео</div>
+            )}
             </div>
           )}
 

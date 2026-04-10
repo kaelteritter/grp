@@ -128,12 +128,20 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
     }
   };
 
-  useEffect(() => {
-    if (safePhotos[currentIndex]?.id) {
-      loadTags();
-      loadPhotoAttributes();
-    }
-  }, [currentIndex, safePhotos]);
+useEffect(() => {
+  const currentPhotoId = safePhotos[currentIndex]?.id;
+  if (currentPhotoId) {
+    loadTags();
+    loadPhotoAttributes();
+  } else {
+    // Очищаем теги и атрибуты, если фото без id (заглушка)
+    setTags([]);
+    setSelectedSeason('');
+    setSelectedDaytime('');
+    setSelectedEvent('');
+    setSelectedClothes([]);
+  }
+}, [currentIndex, safePhotos]);
 
   // Поиск профилей
   useEffect(() => {

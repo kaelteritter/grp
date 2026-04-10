@@ -83,6 +83,16 @@ function HomePage() {
           profileName: [p.last_name, p.first_name, p.middle_name].filter(Boolean).join(' ') || 'Без имени',
           profile: p
         });
+      } else {
+        // Профиль без фото – добавляем заглушку
+        allAvatars.push({
+          id: null,
+          url: null,
+          profileId: p.id,
+          profileName: [p.last_name, p.first_name, p.middle_name].filter(Boolean).join(' ') || 'Без имени',
+          profile: p,
+          isPlaceholder: true
+        });
       }
     });
     
