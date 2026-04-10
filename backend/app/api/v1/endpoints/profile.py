@@ -20,12 +20,16 @@ async def read_profiles(
     db: SessionDep,
     skip: int = 0,
     limit: int = 100,
-    search: Optional[str] = Query(None, description="Поиск по имени/фамилии")
+    search: Optional[str] = Query(None, description="Поиск по имени/фамилии"),
+    cloth_ids: Optional[str] = Query(None, description="Comma-separated list of cloth IDs")
 ):
     """
     Получить список всех профилей с пагинацией
     """
-    return await services.read_profiles(db, skip=skip, limit=limit, search=search)
+    cloth_id_list = None
+    if cloth_ids:
+        cloth_id_list = [int(x) for x in cloth_ids.split(',') if x.isdigit()]
+    return await services.read_profiles(db, skip=skip, limit=limit, search=search, cloth_ids=cloth_id_list)
 
 
 @router.post("/", response_model=ProfileReadSchema, status_code=status.HTTP_201_CREATED)

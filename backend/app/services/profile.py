@@ -1,7 +1,7 @@
 import logging
 from typing import List, Optional
 from fastapi import HTTPException, status
-from sqlalchemy import or_, select, and_
+from sqlalchemy import distinct, func, or_, select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload, contains_eager
 from sqlalchemy.exc import IntegrityError
@@ -15,6 +15,7 @@ from app.models.photo import Photo
 from app.models.video import Video
 from app.models.profession import Profession, employments
 from app.models.company import Company
+from app.models.cloth import photo_clothes
 from app.schemas.profile import ProfileCreateSchema, ProfileUpdateSchema, ProfileReadSchema, ProfileEmploymentReadSchema, ProfileConnectionReadSchema
 from app.schemas.link import LinkReadSchema
 from app.schemas.photo import PhotoForProfileReadSchema
@@ -275,6 +276,7 @@ async def read_profiles(
     skip: int = 0,
     limit: int = 100,
     search: Optional[str] = None,
+    cloth_ids: Optional[List[int]] = None,
 ) -> List[ProfileReadSchema]:
     """Получение списка профилей с пагинацией и трудоустройствами"""
     try:
@@ -285,7 +287,22 @@ async def read_profiles(
             selectinload(Profile.photos),
             selectinload(Profile.videos)
         )
-        
+        if cloth_ids:
+            # Фильтруем профили, у которых есть хотя бы одно фото с любой из выбранных одежд
+            subq = select(
+                Photo.profile_id,
+                func.count(distinct(photo_clothes.c.clothes_id)).label('match_count')
+            ).join(
+                photo_clothes, Photo.id == photo_clothes.c.photo_id
+            ).where(
+                photo_clothes.c.clothes_id.in_(cloth_ids)
+            ).group_by(Photo.profile_id).subquery()
+
+            stmt = stmt.join(
+                subq, Profile.id == subq.c.profile_id
+            ).where(
+                subq.c.match_count == len(cloth_ids)
+            ).distinct()
         
         if search:
             stmt = stmt.where(

@@ -32,7 +32,13 @@ const request = async (endpoint, options = {}) => {
 };
 
 export const profileApi = {
-  getAll: (skip = 0, limit = 20) => request(`/profiles/?skip=${skip}&limit=${limit}`),
+    getAll: (skip = 0, limit = 20, clothIds = []) => {
+      let url = `/profiles/?skip=${skip}&limit=${limit}`;
+      if (clothIds.length) {
+        url += `&cloth_ids=${clothIds.join(',')}`;
+      }
+      return request(url);
+    },
   get: (id) => request(`/profiles/${id}`),
   create: (data) => {
     // Убираем undefined значения и преобразуем пустые строки в null
@@ -111,4 +117,8 @@ export const countryApi = {
 
 export const linkApi = {
   create: (data) => request('/links/', { method: 'POST', body: JSON.stringify(data) }),
+};
+
+export const clothApi = {
+  getAll: () => request('/clothes/'),
 };
