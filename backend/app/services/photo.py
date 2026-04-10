@@ -10,8 +10,10 @@ from app.core.storage import storage
 from app.models.cloth import Cloth
 from app.models.daytime import DayTime
 from app.models.address import Address
+from app.models.location import Location
 from app.models.photo import Photo
 from app.models.profile import Profile
+from app.models.region import Region
 from app.models.season import Season
 from app.models.event import Event
 from app.schemas.photo import PhotoCreateSchema, PhotoUpdateSchema
@@ -191,7 +193,13 @@ async def update_photo(db: AsyncSession, photo_id: int, photo_in: PhotoUpdateSch
 
 async def read_photos(db: AsyncSession, profile_id: Optional[int] = None, skip: int = 0, limit: int = 100):
     """Получение списка фотографий с фильтрацией по профилю"""
-    stmt = select(Photo).options(selectinload(Photo.clothes))
+    stmt = select(Photo).options(
+        selectinload(Photo.clothes),
+        selectinload(Photo.season),
+        selectinload(Photo.daytime),
+        selectinload(Photo.event),
+        selectinload(Photo.address).selectinload(Address.location).selectinload(Location.region).selectinload(Region.country)
+    )
     
     if profile_id:
         stmt = stmt.where(Photo.profile_id == profile_id)

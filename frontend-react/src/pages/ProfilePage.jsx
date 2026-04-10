@@ -595,7 +595,17 @@ const ProfilePage = () => {
                             ))}
                           </div>
                         )}
+                        {photo.address && (
+                          <div className="flex items-center gap-1 text-[10px] text-gray-300">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M12 2c-3.5 0-6 2.5-6 6 0 4 3 7 6 7s6-3 6-7c0-3.5-2.5-6-6-6z" />
+                              <path d="M12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
+                            </svg>
+                            <span>{photo.address.street}, {photo.address.house}</span>
+                          </div>
+                        )}
                       </div>
+                      
                     </div>
                   ))}
                 </div>

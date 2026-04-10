@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -81,7 +81,7 @@ async def read_address(db: AsyncSession, address_id: int):
 
 async def read_addresses(
     db: AsyncSession,
-    location_id: Optional[int] = None,
+    search: Optional[str] = None,
     skip: int = 0,
     limit: int = 100
 ):
@@ -90,8 +90,13 @@ async def read_addresses(
         selectinload(Address.location).selectinload(Location.region).selectinload(Region.country)
     )
     
-    if location_id:
-        stmt = stmt.where(Address.location_id == location_id)
+    if search:
+            stmt = stmt.where(
+                or_(
+                    Address.street.ilike(f"%{search}%"),
+                    Address.house.ilike(f"%{search}%")
+                )
+            )
     
     stmt = stmt.order_by(Address.id).offset(skip).limit(limit)
     result = await db.execute(stmt)

@@ -26,14 +26,14 @@ async def create_address(
 @router.get("/", response_model=List[AddressReadSchema])
 async def read_addresses(
     db: SessionDep,
-    location_id: Optional[int] = Query(None, description="Фильтр по ID локации"),
+    search: Optional[str] = Query(None, description="Поиск по улице или дому"),
     skip: int = Query(0, ge=0, description="Пропустить записей"),
     limit: int = Query(100, ge=1, le=1000, description="Лимит записей")
 ):
     """
     Получить список адресов с фильтрацией по локации
     """
-    addresses = await services.read_addresses(db, location_id=location_id, skip=skip, limit=limit)
+    addresses = await services.read_addresses(db, search=search, skip=skip, limit=limit)
     return [address for address in addresses]
 
 

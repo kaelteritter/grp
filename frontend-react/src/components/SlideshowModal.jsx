@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AddressSearch from './AddressSearch';
+
 
 // SVG иконки
 const SeasonIcon = () => (
@@ -75,6 +77,11 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
 
   const safePhotos = photos && Array.isArray(photos) ? photos : [];
 
+  const [selectedAddress, setSelectedAddress] = useState('');
+  const [showAddressSelect, setShowAddressSelect] = useState(false);
+  const [selectedAddressObj, setSelectedAddressObj] = useState(null);
+
+
   // Загрузка справочников
   useEffect(() => {
     if (isOpen) loadReferenceData();
@@ -124,6 +131,15 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
       setSelectedEvent(photo.event_id || '');
       // Извлекаем ID одежды из массива clothes (если есть)
       setSelectedClothes(photo.clothes ? photo.clothes.map(c => c.id) : []);
+      setSelectedAddress(photo.address_id || '');
+      if (photo.address_id) {
+        fetch(`http://localhost:8000/api/v1/addresses/${photo.address_id}`)
+          .then(r => r.json())
+          .then(addr => setSelectedAddressObj(addr))
+          .catch(console.error);
+      } else {
+        setSelectedAddressObj(null);
+      }
     } catch (error) {
       console.error('Error loading photo attributes:', error);
     }
@@ -262,6 +278,17 @@ useEffect(() => {
       if (field === 'season_id') setSelectedSeason(value);
       if (field === 'daytime_id') setSelectedDaytime(value);
       if (field === 'event_id') setSelectedEvent(value);
+      if (field === 'address_id') {
+        setSelectedAddress(value);
+        if (value) {
+          fetch(`http://localhost:8000/api/v1/addresses/${value}`)
+            .then(r => r.json())
+            .then(addr => setSelectedAddressObj(addr))
+            .catch(console.error);
+        } else {
+          setSelectedAddressObj(null);
+        }
+      }
       if (onUpdate) onUpdate();
       setShowSeasonSelect(false);
       setShowDaytimeSelect(false);
@@ -547,6 +574,28 @@ useEffect(() => {
                   </div>
                   <button onClick={() => handleUpdateClothes(selectedClothes)} className="w-full text-xs py-1 bg-blue-500 text-white rounded hover:bg-blue-600" disabled={updating}>Save clothes</button>
                 </div>
+              )}
+
+              {/* Address */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 2c-3.5 0-6 2.5-6 6 0 4 3 7 6 7s6-3 6-7c0-3.5-2.5-6-6-6z" />
+                    <path d="M12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
+                  </svg>
+                  <span className="text-xs">
+                    {selectedAddressObj ? `${selectedAddressObj.street}, ${selectedAddressObj.house}` : 'Not specified'}
+                  </span>
+                </div>
+                <button onClick={() => setShowAddressSelect(!showAddressSelect)} className="text-gray-400 hover:text-white">
+                  <EditIcon />
+                </button>
+              </div>
+              {showAddressSelect && (
+                <AddressSearch
+                  value={selectedAddress}
+                  onChange={(addressId) => handleUpdateAttribute('address_id', addressId)}
+                />
               )}
             </div>
           </div>

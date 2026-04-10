@@ -86,6 +86,7 @@ class Photo(Base):
         back_populates="photos",
         lazy="selectin"
     )
+
     
     season = relationship("Season", back_populates="photos", lazy="selectin")
     daytime = relationship("DayTime", back_populates="photos", lazy="selectin")
