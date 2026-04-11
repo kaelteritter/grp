@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AddressSearch from './AddressSearch';
+import MultiClothSearch from './MultiClothSearch';
 import PlaceSearch from './PlaceSearch'
 
 // SVG иконки
@@ -306,22 +307,15 @@ useEffect(() => {
     if (!safePhotos[currentIndex]?.id) return;
     setUpdating(true);
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/photos/${safePhotos[currentIndex].id}`, {
+      await fetch(`http://localhost:8000/api/v1/photos/${safePhotos[currentIndex].id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cloth_ids: clothIds }),
       });
-      // Обновляем локальное состояние немедленно, чтобы чекбоксы остались отмеченными
       setSelectedClothes(clothIds);
-      // Также обновляем данные в родительском компоненте, если нужно
+      await loadPhotoAttributes();
       if (onUpdate) onUpdate();
       setShowClothSelect(false);
-      // Дополнительно можно обновить атрибуты, но без перезаписи одежды
-      const data = await response.json();
-      // Обновляем другие атрибуты, если они изменились
-      if (data.season_id !== undefined) setSelectedSeason(data.season_id);
-      if (data.daytime_id !== undefined) setSelectedDaytime(data.daytime_id);
-      if (data.event_id !== undefined) setSelectedEvent(data.event_id);
     } catch (error) {
       console.error('Error updating clothes:', error);
     } finally {
@@ -556,25 +550,25 @@ useEffect(() => {
                 </select>
               )}
 
-              {/* Clothes multiple */}
+              {/* Clothes multiple - with search */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2"><ClothesIcon /><span className="text-xs">{selectedClothes.length > 0 ? `${selectedClothes.length} item(s)` : 'Not specified'}</span></div>
-                <button onClick={() => setShowClothSelect(!showClothSelect)} className="text-gray-400 hover:text-white"><EditIcon /></button>
+                <div className="flex items-center gap-2">
+                  <ClothesIcon />
+                  <span className="text-xs">
+                    {selectedClothes.length > 0 ? `${selectedClothes.length} item(s)` : 'Not specified'}
+                  </span>
+                </div>
+                <button onClick={() => setShowClothSelect(!showClothSelect)} className="text-gray-400 hover:text-white">
+                  <EditIcon />
+                </button>
               </div>
               {showClothSelect && (
-                <div className="mt-2 space-y-2">
-                  <div className="max-h-40 overflow-y-auto space-y-1 bg-gray-900 p-2 rounded">
-                    {clothes.map(cloth => (
-                      <label key={cloth.id} className="flex items-center gap-2 text-xs">
-                        <input type="checkbox" checked={selectedClothes.includes(cloth.id)} onChange={(e) => {
-                          if (e.target.checked) setSelectedClothes(prev => [...prev, cloth.id]);
-                          else setSelectedClothes(prev => prev.filter(id => id !== cloth.id));
-                        }} className="rounded border-gray-600 bg-gray-800" />
-                        <span>{cloth.name} ({cloth.color}, {cloth.material})</span>
-                      </label>
-                    ))}
-                  </div>
-                  <button onClick={() => handleUpdateClothes(selectedClothes)} className="w-full text-xs py-1 bg-blue-500 text-white rounded hover:bg-blue-600" disabled={updating}>Save clothes</button>
+                <div className="mt-2">
+                  <MultiClothSearch
+                    value={selectedClothes}
+                    onChange={(clothIds) => handleUpdateClothes(clothIds)}
+                    placeholder="Search clothes by name..."
+                  />
                 </div>
               )}
 
