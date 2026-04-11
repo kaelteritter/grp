@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import LocationSearch from './LocationSearch';
 import PlaceSearch from './PlaceSearch';
+import ProfessionSearch from './ProfessionSearch';
+import CompanySearch from './CompanySearch';
 
 
 const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, professions, companies }) => {
@@ -13,10 +15,10 @@ const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, 
     birth_month: '',
     birth_day: '',
     current_location_id: '',
+    university_id: '',
     email: '',
     phone: '',
     hair_color: '',
-    university_id: '',
   });
   const [links, setLinks] = useState([]);
   const [photos, setPhotos] = useState([]);
@@ -41,14 +43,16 @@ const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, 
         birth_month: profile.birth_month || '',
         birth_day: profile.birth_day || '',
         current_location_id: profile.current_location_id || '',
+        university_id: profile.university?.id || '',
         email: profile.email || '',
         phone: profile.phone || '',
         hair_color: profile.hair_color || '',
-        university_id: profile.university?.id || '',
       });
       setLinks(profile.links || []);
-      setProfessionId(profile.professions?.[0]?.id || '');
-      setCompanyId(profile.professions?.[0]?.company_id || '');
+      // Берем первую профессию из списка (если есть)
+      const firstEmployment = profile.employments?.[0];
+      setProfessionId(firstEmployment?.profession_id || '');
+      setCompanyId(firstEmployment?.company_id || '');
     } else {
       setFormData({
         first_name: '',
@@ -59,6 +63,7 @@ const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, 
         birth_month: '',
         birth_day: '',
         current_location_id: '',
+        university_id: '',
         email: '',
         phone: '',
         hair_color: '',
@@ -177,13 +182,12 @@ const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, 
         birth_month: formData.birth_month ? parseInt(formData.birth_month) : null,
         birth_day: formData.birth_day ? parseInt(formData.birth_day) : null,
         current_location_id: formData.current_location_id ? parseInt(formData.current_location_id) : null,
+        university_id: formData.university_id ? parseInt(formData.university_id) : null,
         email: formData.email || null,
         phone: formData.phone || null,
         hair_color: formData.hair_color || null,
-        university_id: formData.university_id ? parseInt(formData.university_id) : null,
       };
 
-      // Обрабатываем ссылки: строим полный URL
       const processedLinks = links.map(link => {
         if (!link.url || !link.platform_id) return null;
         const platform = platforms.find(p => p.id === parseInt(link.platform_id));
@@ -215,11 +219,7 @@ const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, 
           <button onClick={onClose} className="text-gray-500 hover:text-white text-xl">&times;</button>
         </div>
 
-        {error && (
-          <div className="mx-4 mt-4 p-3 bg-red-500/10 border border-red-500/50 text-red-500 text-xs">
-            {error}
-          </div>
-        )}
+        {error && <div className="mx-4 mt-4 p-3 bg-red-500/10 border border-red-500/50 text-red-500 text-xs">{error}</div>}
 
         <div className="flex border-b border-gray-800">
           <button className={`px-4 py-2 text-xs ${activeTab === 'basic' ? 'text-white border-b border-white' : 'text-gray-500'}`} onClick={() => setActiveTab('basic')}>Basic</button>
@@ -379,18 +379,19 @@ const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, 
             <>
               <div>
                 <label className="block text-[10px] text-gray-500 uppercase tracking-wider mb-1">Profession</label>
-                <select value={professionId} onChange={e => setProfessionId(e.target.value)} className="w-full bg-transparent border-b border-gray-800 py-2 text-sm">
-                  <option value="">Select profession</option>
-                  {safeProfessions.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select>
+                <ProfessionSearch
+                  value={professionId}
+                  onChange={(id) => setProfessionId(id)}
+                  placeholder="Search profession by name..."
+                />
               </div>
-
               <div>
                 <label className="block text-[10px] text-gray-500 uppercase tracking-wider mb-1">Company</label>
-                <select value={companyId} onChange={e => setCompanyId(e.target.value)} className="w-full bg-transparent border-b border-gray-800 py-2 text-sm">
-                  <option value="">Select company</option>
-                  {safeCompanies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
+                <CompanySearch
+                  value={companyId}
+                  onChange={(id) => setCompanyId(id)}
+                  placeholder="Search company by name..."
+                />
               </div>
             </>
           )}

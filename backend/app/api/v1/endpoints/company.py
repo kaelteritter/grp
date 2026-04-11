@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Query, status
-from typing import List
+from typing import List, Optional
 
 from app.core.database import SessionDep
 from app.schemas.company import CompanyCreateSchema, CompanyReadSchema, CompanyUpdateSchema
@@ -24,13 +24,14 @@ async def create_company(
 @router.get("/", response_model=List[CompanyReadSchema])
 async def read_companies(
     db: SessionDep,
+    search: Optional[str] = Query(None),
     skip: int = Query(0, ge=0, description="Пропустить записей"),
     limit: int = Query(100, ge=1, le=1000, description="Лимит записей")
 ):
     """
     Получить список компаний
     """
-    return await services.read_companies(db, skip=skip, limit=limit)
+    return await services.read_companies(db, skip=skip, limit=limit, search=search)
 
 
 @router.get("/{company_id}", response_model=CompanyReadSchema)

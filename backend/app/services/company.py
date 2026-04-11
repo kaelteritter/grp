@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -9,7 +10,6 @@ from app.models.company import Company
 from app.models.address import Address
 from app.models.location import Location
 from app.models.region import Region
-from app.models.country import Country
 from app.schemas.company import CompanyCreateSchema, CompanyUpdateSchema
 
 logger = logging.getLogger(__name__)
@@ -88,12 +88,18 @@ async def read_company(db: AsyncSession, company_id: int):
 async def read_companies(
     db: AsyncSession,
     skip: int = 0,
+    search: Optional[str] = None,
     limit: int = 100
 ):
     """Получение списка компаний"""
     stmt = select(Company).options(
         selectinload(Company.addresses).selectinload(Address.location).selectinload(Location.region).selectinload(Region.country)
-    ).order_by(Company.id).offset(skip).limit(limit)
+    )
+
+    if search:
+        stmt = stmt.where(Company.name.ilike(f"%{search}%"))
+
+    stmt = stmt.offset(skip).limit(limit).order_by(Company.name)
     
     result = await db.execute(stmt)
     return result.scalars().all()
