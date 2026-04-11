@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import LocationSearch from './LocationSearch';
 import PlaceSearch from './PlaceSearch';
 
+
 const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, professions, companies }) => {
   const [formData, setFormData] = useState({
     first_name: '',
@@ -15,6 +16,7 @@ const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, 
     email: '',
     phone: '',
     hair_color: '',
+    university_id: '',
   });
   const [links, setLinks] = useState([]);
   const [photos, setPhotos] = useState([]);
@@ -42,6 +44,7 @@ const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, 
         email: profile.email || '',
         phone: profile.phone || '',
         hair_color: profile.hair_color || '',
+        university_id: profile.university?.id || '',
       });
       setLinks(profile.links || []);
       setProfessionId(profile.professions?.[0]?.id || '');
@@ -177,6 +180,7 @@ const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, 
         email: formData.email || null,
         phone: formData.phone || null,
         hair_color: formData.hair_color || null,
+        university_id: formData.university_id ? parseInt(formData.university_id) : null,
       };
 
       // Обрабатываем ссылки: строим полный URL
@@ -281,14 +285,14 @@ const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, 
                 <input type="text" name="hair_color" value={formData.hair_color} onChange={handleChange} className="w-full bg-transparent border-b border-gray-800 py-2 text-sm" placeholder="blonde, brunette, red, black" />
               </div>
 
-              <div>
-                <label className="block text-[10px] text-gray-500 uppercase tracking-wider mb-1">University</label>
-                <PlaceSearch
-                  value={formData.university_id}
-                  onChange={(universityId) => setFormData(prev => ({ ...prev, university_id: universityId }))}
-                  placeholder="Search university by name..."
-                />
-              </div>
+            <div>
+              <label className="block text-[10px] text-gray-500 uppercase tracking-wider mb-1">University</label>
+              <PlaceSearch
+                value={formData.university_id}
+                onChange={(universityId) => setFormData(prev => ({ ...prev, university_id: universityId }))}
+                placeholder="Search university by name..."
+              />
+            </div>
             </>
           )}
 
