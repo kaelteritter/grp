@@ -8,6 +8,7 @@ from typing import Optional, List
 from app.schemas.location import LocationReadSchema
 from app.schemas.link import LinkReadSchema
 from app.schemas.photo import PhotoForProfileReadSchema
+from app.schemas.place import PlaceReadSchema
 from app.schemas.video import VideoForProfileReadSchema
 
 
@@ -84,6 +85,7 @@ class ProfileCreateSchema(BaseModel, ProfileFieldsValidationMixin):
     birth_month: Optional[int] = Field(None, ge=1, le=12)
     birth_day: Optional[int] = Field(None, ge=1, le=31)
 
+    university_id: Optional[int] = Field(None, ge=1)
     current_location_id: Optional[int] = Field(None, ge=1)
 
     email: Optional[EmailStr] = Field(None, max_length=255)
@@ -125,6 +127,9 @@ class ProfileReadSchema(BaseModel):
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
 
+    university: Optional[PlaceReadSchema] = None
+
+
     current_location: Optional[LocationReadSchema] = None
     employments: Optional[List[ProfileEmploymentReadSchema]] = []
 
@@ -154,6 +159,7 @@ class ProfileUpdateSchema(BaseModel, ProfileFieldsValidationMixin):
     birth_month: Optional[int] = Field(None, ge=1, le=12)
     birth_day: Optional[int] = Field(None, ge=1, le=31)
 
+    university_id: Optional[int] = Field(None, ge=1)
     current_location_id: Optional[int] = Field(None, ge=1)
 
     email: Optional[EmailStr] = Field(None, max_length=255)

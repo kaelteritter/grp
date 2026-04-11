@@ -6,6 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload, contains_eager
 from sqlalchemy.exc import IntegrityError
 
+from app.models.address import Address
+from app.models.place import Place
 from app.models.platform import Platform
 from app.models.profile import Profile, profile_connections
 from app.models.location import Location
@@ -120,7 +122,8 @@ async def _get_profile_with_employments(db: AsyncSession, profile_id: int) -> Op
         selectinload(Profile.current_location).selectinload(Location.region).selectinload(Region.country),
         selectinload(Profile.links).selectinload(Link.platform),
         selectinload(Profile.photos),
-        selectinload(Profile.videos)
+        selectinload(Profile.videos),
+        selectinload(Profile.university).selectinload(Place.address).selectinload(Address.location).selectinload(Location.region).selectinload(Region.country)
     )
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
@@ -197,6 +200,12 @@ async def create_profile(db: AsyncSession, profile_in: ProfileCreateSchema):
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Локация с ID {profile_in.current_location_id} не найдена"
                 )
+            
+        if profile_in.university_id:
+            stmt = select(Place).where(Place.id == profile_in.university_id)
+            result = await db.execute(stmt)
+            if not result.scalar_one_or_none():
+                raise HTTPException(404, detail=f"Университет с ID {profile_in.university_id} не найден")
         
         profile = Profile(**profile_in.model_dump())
         db.add(profile)
@@ -385,6 +394,12 @@ async def update_profile(db: AsyncSession, profile_id: int, profile_in: ProfileU
                         status_code=status.HTTP_404_NOT_FOUND,
                         detail=f"Локация с ID {update_data['current_location_id']} не найдена"
                     )
+                
+        if profile_in.university_id:
+            stmt = select(Place).where(Place.id == profile_in.university_id)
+            result = await db.execute(stmt)
+            if not result.scalar_one_or_none():
+                raise HTTPException(404, detail=f"Университет с ID {profile_in.university_id} не найден")
         
         # Обновляем поля
         for field, value in update_data.items():
@@ -402,7 +417,7 @@ async def update_profile(db: AsyncSession, profile_id: int, profile_in: ProfileU
             selectinload(Profile.current_location).selectinload(Location.region).selectinload(Region.country),
             selectinload(Profile.links).selectinload(Link.platform),
             selectinload(Profile.photos),
-            selectinload(Profile.videos)
+            selectinload(Profile.videos).selectinload(Profile.university)
         )
         result = await db.execute(stmt)
         profile = result.scalar_one()

@@ -93,6 +93,9 @@ class Profile(Base):
         nullable=True
     )
 
+    university_id: Mapped[int] = mapped_column(ForeignKey("places.id", ondelete="SET NULL"), nullable=True)
+    university = relationship("Place", back_populates="profiles", lazy="selectin")
+
 
     # Локации
     current_location_id: Mapped[int] = mapped_column(ForeignKey("locations.id"), nullable=True)
