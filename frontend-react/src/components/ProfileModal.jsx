@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import LocationSearch from './LocationSearch';
+import PlaceSearch from './PlaceSearch';
 
 const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, professions, companies }) => {
   const [formData, setFormData] = useState({
@@ -278,6 +279,15 @@ const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, 
               <div>
                 <label className="block text-[10px] text-gray-500 uppercase tracking-wider mb-1">Hair Color</label>
                 <input type="text" name="hair_color" value={formData.hair_color} onChange={handleChange} className="w-full bg-transparent border-b border-gray-800 py-2 text-sm" placeholder="blonde, brunette, red, black" />
+              </div>
+
+              <div>
+                <label className="block text-[10px] text-gray-500 uppercase tracking-wider mb-1">University</label>
+                <PlaceSearch
+                  value={formData.university_id}
+                  onChange={(universityId) => setFormData(prev => ({ ...prev, university_id: universityId }))}
+                  placeholder="Search university by name..."
+                />
               </div>
             </>
           )}
