@@ -15,21 +15,21 @@ router = APIRouter(
 
 
 
-@router.get("/", response_model=List[ProfileReadSchema], status_code=status.HTTP_200_OK)
+@router.get("/", response_model=List[ProfileReadSchema])
 async def read_profiles(
     db: SessionDep,
     skip: int = 0,
     limit: int = 100,
-    search: Optional[str] = Query(None, description="Поиск по имени/фамилии"),
-    cloth_ids: Optional[str] = Query(None, description="Comma-separated list of cloth IDs")
+    cloth_ids: Optional[str] = Query(None),
+    search: Optional[str] = Query(None, description="Поиск по всем полям профиля")
 ):
-    """
-    Получить список всех профилей с пагинацией
-    """
     cloth_id_list = None
     if cloth_ids:
         cloth_id_list = [int(x) for x in cloth_ids.split(',') if x.isdigit()]
-    return await services.read_profiles(db, skip=skip, limit=limit, search=search, cloth_ids=cloth_id_list)
+    profiles = await services.read_profiles(
+        db, skip=skip, limit=limit, cloth_ids=cloth_id_list, search=search
+    )
+    return profiles
 
 
 @router.post("/", response_model=ProfileReadSchema, status_code=status.HTTP_201_CREATED)

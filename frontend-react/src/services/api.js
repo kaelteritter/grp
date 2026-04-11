@@ -32,10 +32,13 @@ const request = async (endpoint, options = {}) => {
 };
 
 export const profileApi = {
-    getAll: (skip = 0, limit = 20, clothIds = []) => {
+    getAll: (skip = 0, limit = 20, clothIds = [], search = '') => {
       let url = `/profiles/?skip=${skip}&limit=${limit}`;
       if (clothIds.length) {
         url += `&cloth_ids=${clothIds.join(',')}`;
+      }
+      if (search) {
+        url += `&search=${encodeURIComponent(search)}`;
       }
       return request(url);
     },

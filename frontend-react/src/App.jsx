@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import SearchBar from './components/SearchBar';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import ProfileCard from './components/ProfileCard';
 import ProfileModal from './components/ProfileModal';
@@ -47,6 +48,10 @@ function HomePage() {
   const [clothes, setClothes] = useState([]); // список всех предметов одежды
   const [selectedClothIds, setSelectedClothIds] = useState([]); // выбранные ID
   const [placeModalOpen, setPlaceModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchDebounce, setSearchDebounce] = useState(null);
+
+
 
   const limit = 20;
 
@@ -56,8 +61,10 @@ function HomePage() {
 
   // Первая загрузка профилей
   useEffect(() => {
-    loadProfiles(0, false);
-  }, []);
+    setSkip(0);
+    setHasMore(true);
+    loadProfiles(0, false, selectedClothIds, searchQuery);
+  }, [selectedClothIds, searchQuery]);
 
   useEffect(() => {
     loadAllData();
@@ -77,7 +84,7 @@ function HomePage() {
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
       if (scrollTop + windowHeight >= documentHeight - 200) {
-        loadProfiles(skip + limit, true);
+        loadProfiles(skip + limit, true, selectedClothIds, searchQuery);
       }
     };
     window.addEventListener('scroll', handleScroll);
@@ -109,14 +116,22 @@ function HomePage() {
       }
     };
 
-  const loadProfiles = async (newSkip, append, clothIds) => {
+  const handleSearch = (value) => {
+    setSearchQuery(value);
+    setSkip(0);
+    setHasMore(true);
+    loadProfiles(0, false, selectedClothIds, value);
+  };
+
+
+  const loadProfiles = async (newSkip, append, clothIds, search) => {
     if (append) {
       setLoadingMore(true);
     } else {
       setLoading(true);
     }
     try {
-      const res = await profileApi.getAll(newSkip, limit, clothIds);
+      const res = await profileApi.getAll(newSkip, limit, clothIds, search);
       const newProfiles = res.data || [];
       if (append) {
         setProfiles(prev => [...prev, ...newProfiles]);
@@ -222,6 +237,7 @@ function HomePage() {
       }
     }
   };
+  
 
   const handleSaveProfile = async (profileData, linksData, photos, videos, professionId, companyId, connections) => {
     try {
@@ -352,6 +368,14 @@ function HomePage() {
             </svg>
           )}
         </button>
+
+
+        {/* Компонент поиска */}
+        <SearchBar
+          value={searchQuery}
+          onChange={handleSearch}
+          placeholder="Search profiles by name, email, profession, company, social link..."
+        />
 
         <h1 className="text-xl font-light tracking-wider text-white">GRAPHSOCIAL</h1>
 
