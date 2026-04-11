@@ -208,7 +208,7 @@ async def create_profile(db: AsyncSession, profile_in: ProfileCreateSchema):
         await db.rollback()
         if "UNIQUE constraint failed: profiles.email" in str(e):
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail="Профиль с таким email уже существует"
             )
         logger.error(f"IntegrityError in create_profile: {e}")

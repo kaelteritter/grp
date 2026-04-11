@@ -1,34 +1,21 @@
 # backend/app/schemas/country.py
 
-from typing import Optional
-from pydantic import BaseModel, Field, field_validator
+from typing import Annotated
+from pydantic import BaseModel, ConfigDict, Field
 
 
-class CountryReadSchema(BaseModel):
+class CountryBaseSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
+
+
+class CountryReadSchema(CountryBaseSchema):
     id: int
     name: str
 
 
-class CountryCreateSchema(BaseModel):
-    name: str = Field(..., min_length=1, max_length=255)
-
-    @field_validator('name')
-    @classmethod
-    def validate_name_not_empty(cls, v):
-        """Проверка, что имя не пустое и не состоит из пробелов"""
-        if not v or not v.strip():
-            raise ValueError("Название страны не может быть пустым")
-        return v.strip()
+class CountryCreateSchema(CountryBaseSchema):
+    name: Annotated[str, Field(..., min_length=1, max_length=255)]
 
 
-class CountryUpdateSchema(BaseModel):
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    
-    @field_validator('name')
-    @classmethod
-    def validate_name_not_empty(cls, v):
-        if v is not None:
-            if not v or not v.strip():
-                raise ValueError("Название страны не может быть пустым")
-            return v.strip()
-        return v
+class CountryUpdateSchema(CountryBaseSchema):
+    name: Annotated[str | None, Field(None, min_length=1, max_length=255)]

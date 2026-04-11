@@ -81,6 +81,7 @@ async def read_region(db: AsyncSession, region_id: int):
 async def read_regions(
     db: AsyncSession, 
     country_id: Optional[int] = None,
+    search: Optional[str] = None,
     skip: int = 0, 
     limit: int = 100
 ):
@@ -89,6 +90,8 @@ async def read_regions(
     
     if country_id:
         stmt = stmt.where(Region.country_id == country_id)
+    if search:
+        stmt = stmt.where(Region.name.ilike(f"%{search}%"))
     
     stmt = stmt.order_by(Region.name).offset(skip).limit(limit)
     result = await db.execute(stmt)

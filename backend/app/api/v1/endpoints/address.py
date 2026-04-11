@@ -27,13 +27,14 @@ async def create_address(
 async def read_addresses(
     db: SessionDep,
     search: Optional[str] = Query(None, description="Поиск по улице или дому"),
+    location_id: Optional[int] = Query(None, description="Фильтрация по локации"),
     skip: int = Query(0, ge=0, description="Пропустить записей"),
     limit: int = Query(100, ge=1, le=1000, description="Лимит записей")
 ):
     """
     Получить список адресов с фильтрацией по локации
     """
-    addresses = await services.read_addresses(db, search=search, skip=skip, limit=limit)
+    addresses = await services.read_addresses(db, search=search, skip=skip, limit=limit, location_id=location_id)
     return [address for address in addresses]
 
 

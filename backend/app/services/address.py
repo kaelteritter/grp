@@ -1,4 +1,5 @@
 import logging
+from token import OP
 from typing import Optional
 from fastapi import HTTPException, status
 from sqlalchemy import or_, select
@@ -82,6 +83,7 @@ async def read_address(db: AsyncSession, address_id: int):
 async def read_addresses(
     db: AsyncSession,
     search: Optional[str] = None,
+    location_id: Optional[int] = None,
     skip: int = 0,
     limit: int = 100
 ):
@@ -98,6 +100,9 @@ async def read_addresses(
                 )
             )
     
+    if location_id:
+        stmt = stmt.join(Address.location).where(Location.id == location_id)
+
     stmt = stmt.order_by(Address.id).offset(skip).limit(limit)
     result = await db.execute(stmt)
     return result.scalars().all()

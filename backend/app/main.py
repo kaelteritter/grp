@@ -49,13 +49,11 @@ app.add_middleware(
 )
 
 # ================== МОНТИРОВАНИЕ ХРАНИЛИЩА ФАЙЛОВ ==================
-print(f"[Main] Storage directory: {STORAGE_DIR}")
-print(f"[Main] Storage exists: {STORAGE_DIR.exists()}")
 
 # Создаем storage если нет
 STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/storage", StaticFiles(directory=str(STORAGE_DIR)), name="storage")
-print(f"[Main] Storage mounted at /storage -> {STORAGE_DIR}")
+
 
 # ================== ПОДКЛЮЧЕНИЕ РОУТЕРОВ API ==================
 # Подключаем роутеры напрямую с префиксом /api/v1

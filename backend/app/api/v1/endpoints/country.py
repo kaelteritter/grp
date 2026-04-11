@@ -1,6 +1,8 @@
 # backend/app/api/v1/endpoints/country.py 
 
-from fastapi import APIRouter
+from typing import List, Optional
+
+from fastapi import APIRouter, Query
 from starlette import status
 
 from app import services
@@ -19,9 +21,15 @@ async def create_country(db: SessionDep, country_in: CountryCreateSchema):
     return await services.create_country(db, country_in)
 
 
-@router.get("/", response_model=list[CountryReadSchema], status_code=status.HTTP_200_OK)
-async def read_countries(db: SessionDep):
-    return await services.read_countries(db)
+@router.get("/", response_model=List[CountryReadSchema])
+async def read_countries(
+    db: SessionDep,
+    search: Optional[str] = Query(None, description="Поиск по названию"),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100)
+):
+    countries = await services.read_countries(db, search=search, skip=skip, limit=limit)
+    return countries
 
 
 @router.get("/{country_id}", response_model=CountryReadSchema, status_code=status.HTTP_200_OK)

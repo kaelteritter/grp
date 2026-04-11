@@ -1,5 +1,7 @@
 # backend/app/services/country.py
 
+from typing import Optional
+
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -51,8 +53,16 @@ async def read_country(db: AsyncSession, country_id: int):
     return country
 
 
-async def read_countries(db: AsyncSession):
+async def read_countries(
+    db: AsyncSession,
+    search: Optional[str] = None,
+    skip: int = 0,
+    limit: int = 20
+):
     stmt = select(Country)
+    if search:
+        stmt = stmt.where(Country.name.ilike(f"%{search}%"))
+    stmt = stmt.order_by(Country.name).offset(skip).limit(limit)
     result = await db.execute(stmt)
     return result.scalars().all()
 
