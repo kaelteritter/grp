@@ -17,8 +17,6 @@ ROOT_DIR = path_to_root
 FRONTEND_DIR = path_to_frontend
 STORAGE_DIR = path_to_storage  # <-- теперь storage в корне
 
-print(f"[Paths] ROOT_DIR: {ROOT_DIR}")
-print(f"[Paths] STORAGE_DIR: {STORAGE_DIR}")
 
 __all__ = [
     "BACKEND_DIR",

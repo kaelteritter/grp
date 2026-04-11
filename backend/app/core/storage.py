@@ -20,7 +20,6 @@ class LocalS3Storage:
     
     def __post_init__(self):
         """Инициализация хранилища после создания"""
-        print(f"[Storage] Initializing with base_path: {self.base_path}")
         self.s3_path = self.base_path / "s3"
         self._init_directories()
     
@@ -34,7 +33,6 @@ class LocalS3Storage:
         ]
         for directory in directories:
             directory.mkdir(parents=True, exist_ok=True)
-            print(f"[Storage] Created directory: {directory}")
     
     @staticmethod
     def get_unique_name(extension: str = "") -> str:
@@ -79,8 +77,6 @@ class LocalS3Storage:
         relative_path = file_path.relative_to(self.base_path)
         url = f"/storage/{relative_path}"
         
-        print(f"[Storage] File saved: {file_path}")
-        print(f"[Storage] URL: {url}")
         return url
     
     def save_photo(self, profile_id: int, file_content: bytes, filename: str) -> str:

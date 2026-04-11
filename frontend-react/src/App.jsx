@@ -228,10 +228,8 @@ function HomePage() {
       if (editingProfile) {
         await profileApi.update(editingProfile.id, profileData);
         profileId = editingProfile.id;
-      } else {
-        const res = await profileApi.create(profileData);
-        profileId = res.data.id;
         
+        // Загружаем новые фото (если есть)
         if (photos && photos.length > 0) {
           const formData = new FormData();
           photos.forEach(f => formData.append('files', f));
@@ -242,44 +240,51 @@ function HomePage() {
           });
         }
         
-        if (videos && videos.length > 0) {
-          const formData = new FormData();
-          videos.forEach(f => formData.append('files', f));
-          formData.append('profile_id', profileId);
-          await fetch('http://localhost:8000/api/v1/videos/multiple/', {
-            method: 'POST',
-            body: formData,
-          });
-        }
-        
-        if (professionId) {
-          await fetch('http://localhost:8000/api/v1/professions/profile/employment', {
+      // Загружаем новые видео (если есть)
+      if (videos && videos.length > 0) {
+        const formData = new FormData();
+        videos.forEach(f => formData.append('files', f));
+        formData.append('profile_id', profileId);
+        await fetch('http://localhost:8000/api/v1/videos/multiple/', {
+          method: 'POST',
+          body: formData,
+        });
+      }
+      
+      // Добавляем профессию (если новая)
+      if (professionId) {
+        await fetch('http://localhost:8000/api/v1/professions/profile/employment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            profile_id: profileId,
+            profession_id: parseInt(professionId),
+            company_id: companyId ? parseInt(companyId) : null,
+            is_current: true
+          })
+        });
+      }
+      
+      // Добавляем связи
+      for (const conn of connections) {
+        if (conn.profile_id && conn.relation_type) {
+          await fetch('http://localhost:8000/api/v1/connections/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               profile_id: profileId,
-              profession_id: parseInt(professionId),
-              company_id: companyId ? parseInt(companyId) : null,
-              is_current: true
+              connected_profile_id: parseInt(conn.profile_id),
+              relation_type: conn.relation_type
             })
           });
         }
-        
-        for (const conn of connections) {
-          if (conn.profile_id && conn.relation_type) {
-            await fetch('http://localhost:8000/api/v1/connections/', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                profile_id: profileId,
-                connected_profile_id: parseInt(conn.profile_id),
-                relation_type: conn.relation_type
-              })
-            });
-          }
-        }
       }
-      
+
+      } else {
+        const res = await profileApi.create(profileData);
+        profileId = res.data.id;
+      }
+
       for (const link of linksData) {
         if (link.url && link.platform_id) {
           await linkApi.create({
@@ -289,7 +294,7 @@ function HomePage() {
           });
         }
       }
-      
+
       await loadAllData();
       setModalOpen(false);
       setEditingProfile(null);
