@@ -3,6 +3,8 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
+from app.core.paths import path_to_root
+
 class Settings(BaseSettings):
     APP_NAME: str = "GraphSocial"
     DEBUG: bool = True
@@ -29,7 +31,7 @@ class Settings(BaseSettings):
     def DATABASE_URL(self) -> str:
         if self.DB_SYSTEM == "sqlite":
             # SQLite connection string
-            return f"{self.DB_SYSTEM}+{self.DB_ENGINE}:///./{self.DB_NAME}"
+            return f"{self.DB_SYSTEM}+{self.DB_ENGINE}:///{path_to_root}/{self.DB_NAME}"
         else:
             # PostgreSQL or other DB
             return f"{self.DB_SYSTEM}+{self.DB_ENGINE}://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}/{self.DB_NAME}"

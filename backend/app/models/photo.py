@@ -70,6 +70,9 @@ class Photo(Base):
         nullable=True
     )
 
+    place_id: Mapped[int] = mapped_column(ForeignKey("places.id", ondelete="SET NULL"), nullable=True)
+    place = relationship("Place", back_populates="photos", lazy="selectin")
+
     tags = relationship(
         "PhotoTag",
         back_populates="photo",

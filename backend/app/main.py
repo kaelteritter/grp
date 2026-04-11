@@ -14,6 +14,7 @@ from app.api.v1.endpoints import (
     connection,
     event,
     photo_tag,
+    place,
     profession,
     profile,
     country,
@@ -74,6 +75,7 @@ app.include_router(season.router, prefix="/api/v1")
 app.include_router(daytime.router, prefix="/api/v1")
 app.include_router(event.router, prefix="/api/v1") 
 app.include_router(photo_tag.router, prefix="/api/v1") 
+app.include_router(place.router, prefix="/api/v1") 
 
 
 # ================== HEALTHCHECK ==================

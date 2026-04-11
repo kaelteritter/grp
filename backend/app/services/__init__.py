@@ -142,6 +142,13 @@ from app.services.photo_tag import (
     delete_photo_tag
 )
 
+from app.services.place import (
+    create_place,
+    read_place,
+    read_places,
+    update_place,
+    delete_place,
+)
 
 __all__ = [
     # Profile
@@ -254,5 +261,11 @@ __all__ = [
     "read_photo_tags",
     "update_photo_tag",
     "delete_photo_tag",
+    # Place
+    "create_place",
+    "read_place",
+    "read_places",
+    "update_place",
+    "delete_place",
 
 ]

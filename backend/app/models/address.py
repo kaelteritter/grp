@@ -35,6 +35,8 @@ class Address(Base):
         lazy="selectin"
     )
 
+    places = relationship("Place", back_populates="address", cascade="all, delete-orphan")
+
  
     companies = relationship(
         "Company",

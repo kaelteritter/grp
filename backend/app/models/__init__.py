@@ -15,6 +15,7 @@ from app.models.event import Event
 from app.models.daytime import DayTime
 from app.models.season import Season
 from app.models.photo_tag import PhotoTag
+from app.models.place import Place
 
 __all__ = [
     "Profile",
@@ -33,4 +34,5 @@ __all__ = [
     "DayTime",
     "Season",
     "PhotoTag",
+    "Place",
 ]
