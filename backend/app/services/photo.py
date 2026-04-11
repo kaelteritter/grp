@@ -1,3 +1,4 @@
+from ast import Add
 from typing import List, Optional
 
 from sqlalchemy import select
@@ -7,9 +8,10 @@ from sqlalchemy.orm import selectinload
 from fastapi import Form, HTTPException, UploadFile, status
 
 from app.core.storage import storage
+from app.models.address import Address
 from app.models.cloth import Cloth
 from app.models.daytime import DayTime
-from app.models.address import Address
+from app.models.place import Place
 from app.models.location import Location
 from app.models.photo import Photo
 from app.models.profile import Profile
@@ -69,13 +71,13 @@ async def create_photo(db: AsyncSession, photo_in: PhotoCreateSchema):
                 )
         
         # Проверяем существование адреса (если указан)
-        if photo_in.address_id:
-            stmt = select(Address).where(Address.id == photo_in.address_id)
+        if photo_in.place_id:
+            stmt = select(Place).where(Place.id == photo_in.place_id)
             result = await db.execute(stmt)
             if not result.scalar_one_or_none():
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Адрес с ID {photo_in.address_id} не найден"
+                    detail=f"Адрес с ID {photo_in.place_id} не найден"
                 )
         
         # Если это аватар, снимаем флаг is_avatar с других фото профиля
@@ -99,8 +101,9 @@ async def create_photo(db: AsyncSession, photo_in: PhotoCreateSchema):
             selectinload(Photo.season),
             selectinload(Photo.daytime),
             selectinload(Photo.event),
-            selectinload(Photo.address)
+            selectinload(Photo.place).selectinload(Place.address).selectinload(Address.location).selectinload(Location.region).selectinload(Region.country)
         )
+
         result = await db.execute(stmt)
         photo = result.scalar_one()
         
@@ -161,7 +164,8 @@ async def update_photo(db: AsyncSession, photo_id: int, photo_in: PhotoUpdateSch
         # Подгружаем связанные данные
         stmt = select(Photo).where(Photo.id == photo_id).options(
             selectinload(Photo.profile),
-            selectinload(Photo.clothes)
+            selectinload(Photo.clothes),
+            selectinload(Photo.place).selectinload(Place.address).selectinload(Address.location).selectinload(Location.region).selectinload(Region.country)
         )
         result = await db.execute(stmt)
         photo = result.scalar_one()
@@ -198,7 +202,9 @@ async def read_photos(db: AsyncSession, profile_id: Optional[int] = None, skip: 
         selectinload(Photo.season),
         selectinload(Photo.daytime),
         selectinload(Photo.event),
-        selectinload(Photo.address).selectinload(Address.location).selectinload(Location.region).selectinload(Region.country)
+        selectinload(Photo.place).selectinload(Place.address)
+        .selectinload(Address.location)
+        .selectinload(Location.region).selectinload(Region.country)
     )
     
     if profile_id:
@@ -213,7 +219,8 @@ async def read_photo(db: AsyncSession, photo_id: int):
     """Получение фотографии по ID"""
     stmt = select(Photo).where(Photo.id == photo_id).options(
         selectinload(Photo.profile),
-        selectinload(Photo.clothes)
+        selectinload(Photo.clothes),
+        selectinload(Photo.place).selectinload(Place.address).selectinload(Address.location).selectinload(Location.region).selectinload(Region.country)
     )
     result = await db.execute(stmt)
     photo = result.scalar_one_or_none()

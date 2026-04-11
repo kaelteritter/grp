@@ -45,4 +45,3 @@ class Address(Base):
         lazy="selectin"
     )
     
-    photos = relationship("Photo", back_populates="address", lazy="selectin")

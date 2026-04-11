@@ -1,65 +1,63 @@
 # backend/app/schemas/photo.py
 
-from typing import TYPE_CHECKING, Optional, List
+from typing import TYPE_CHECKING, Annotated, Optional, List
 from datetime import datetime
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict
 
 from app.schemas.cloth import ClothReadSchema
+from app.schemas.place import PlaceReadSchema
 from app.schemas.season import SeasonReadSchema
 from app.schemas.daytime import DayTimeReadSchema
 from app.schemas.event import EventReadSchema
-from app.schemas.address import AddressReadSchema
 from app.schemas.photo_tag import SimplePhotoTagSchema
 
 
 class PhotoBaseSchema(BaseModel):
-    url: str = Field(..., max_length=500)
-    title: Optional[str] = Field(None, max_length=255)
-    is_avatar: bool = False
-    sort_order: int = 0
-    rating: Optional[float] = Field(None, ge=1, le=10)
-    season_id: Optional[int] = None
-    daytime_id: Optional[int] = None
-    event_id: Optional[int] = None
-    address_id: Optional[int] = None
-
-    @field_validator('url')
-    @classmethod
-    def validate_url(cls, v):
-        if not v or not v.strip():
-            raise ValueError("URL фото не может быть пустым")
-        if len(v) > 500:
-            raise ValueError("URL не может быть длиннее 500 символов")
-        return v.strip()
+    model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
 
 
 class PhotoCreateSchema(PhotoBaseSchema):
-    profile_id: int
+    profile_id: Annotated[int, Field(..., ge=1)]
+    url: Annotated[str, Field(..., min_length=1, max_length=500)]
+    title: Annotated[str | None, Field(None, min_length=1, max_length=255)]
+    is_avatar: Annotated[bool, Field(False)]
+    sort_order: Annotated[int, Field(0)]
+    rating: Annotated[float | None, Field(None, ge=1, le=10)]
+    season_id: Annotated[int | None, Field(None)]
+    daytime_id: Annotated[int | None, Field(None)]
+    event_id: Annotated[int | None, Field(None)]
+    place_id: Annotated[int | None, Field(None)]
 
 
-class PhotoUpdateSchema(BaseModel):
-    url: Optional[str] = Field(None, max_length=500)
-    title: Optional[str] = Field(None, max_length=255)
-    is_avatar: Optional[bool] = None
-    sort_order: Optional[int] = Field(None, ge=0)
-    rating: Optional[float] = Field(None, ge=1, le=10)
-    season_id: Optional[int] = None
-    daytime_id: Optional[int] = None
-    event_id: Optional[int] = None
-    address_id: Optional[int] = None
-    cloth_ids: Optional[List[int]] = None
+class PhotoUpdateSchema(PhotoBaseSchema):
+    profile_id: Annotated[int | None, Field(None, ge=1)]
+    url: Annotated[str | None, Field(None, min_length=1, max_length=500)]
+    title: Annotated[str | None, Field(None, min_length=1, max_length=255)]
+    is_avatar: Annotated[bool, Field(False)]
+    sort_order: Annotated[int, Field(0)]
+    rating: Annotated[float | None, Field(None, ge=1, le=10)]
+    season_id: Annotated[int | None, Field(None)]
+    daytime_id: Annotated[int | None, Field(None)]
+    event_id: Annotated[int | None, Field(None)]
+    place_id: Annotated[int | None, Field(None)]
+    cloth_ids: Annotated[list[int], Field(default_factory=list)]
 
 
 class PhotoReadSchema(PhotoBaseSchema):
     model_config = ConfigDict(from_attributes=True)
     
     id: int
+    url: str
+    title: Optional[str]
+    is_avatar: bool
+    sort_order: int
+    rating: Optional[float]
     profile_id: int
     created_at: datetime
     season: Optional[SeasonReadSchema] = None
     daytime: Optional[DayTimeReadSchema] = None
     event: Optional[EventReadSchema] = None
-    address: Optional[AddressReadSchema] = None
+    place: Optional[PlaceReadSchema] = None
     tags: Optional[List[SimplePhotoTagSchema]] = []
     clothes: Optional[List[ClothReadSchema]] = []
 
@@ -77,7 +75,7 @@ class PhotoForProfileReadSchema(BaseModel):
     season: Optional[SeasonReadSchema] = None
     daytime: Optional[DayTimeReadSchema] = None
     event: Optional[EventReadSchema] = None
-    address: Optional[AddressReadSchema] = None
+    place: Optional[PlaceReadSchema] = None
 
 # Простая схема для использования внутри Cloth
 class SimplePhotoSchema(BaseModel):

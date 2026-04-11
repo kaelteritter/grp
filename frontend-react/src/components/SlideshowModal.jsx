@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AddressSearch from './AddressSearch';
-
+import PlaceSearch from './PlaceSearch'
 
 // SVG иконки
 const SeasonIcon = () => (
@@ -63,6 +63,9 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
   const [showEventSelect, setShowEventSelect] = useState(false);
   const [showClothSelect, setShowClothSelect] = useState(false);
   const [hoverVideo, setHoverVideo] = useState(false);
+  const [selectedPlace, setSelectedPlace] = useState('');
+  const [showPlaceSelect, setShowPlaceSelect] = useState(false);
+  const [selectedPlaceObj, setSelectedPlaceObj] = useState(null);
   
   // Состояния для тегов
   const [isTaggingMode, setIsTaggingMode] = useState(false);
@@ -132,13 +135,12 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
       // Извлекаем ID одежды из массива clothes (если есть)
       setSelectedClothes(photo.clothes ? photo.clothes.map(c => c.id) : []);
       setSelectedAddress(photo.address_id || '');
-      if (photo.address_id) {
-        fetch(`http://localhost:8000/api/v1/addresses/${photo.address_id}`)
-          .then(r => r.json())
-          .then(addr => setSelectedAddressObj(addr))
-          .catch(console.error);
+      if (photo.place) {
+        setSelectedPlace(photo.place.id);
+        setSelectedPlaceObj(photo.place);
       } else {
-        setSelectedAddressObj(null);
+        setSelectedPlace('');
+        setSelectedPlaceObj(null);
       }
     } catch (error) {
       console.error('Error loading photo attributes:', error);
@@ -278,15 +280,15 @@ useEffect(() => {
       if (field === 'season_id') setSelectedSeason(value);
       if (field === 'daytime_id') setSelectedDaytime(value);
       if (field === 'event_id') setSelectedEvent(value);
-      if (field === 'address_id') {
-        setSelectedAddress(value);
+      if (field === 'place_id') {
+        setSelectedPlace(value);
         if (value) {
-          fetch(`http://localhost:8000/api/v1/addresses/${value}`)
+          fetch(`http://localhost:8000/api/v1/places/${value}`)
             .then(r => r.json())
-            .then(addr => setSelectedAddressObj(addr))
+            .then(place => setSelectedPlaceObj(place))
             .catch(console.error);
         } else {
-          setSelectedAddressObj(null);
+          setSelectedPlaceObj(null);
         }
       }
       if (onUpdate) onUpdate();
@@ -576,25 +578,24 @@ useEffect(() => {
                 </div>
               )}
 
-              {/* Address */}
+              {/* Place */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M12 2c-3.5 0-6 2.5-6 6 0 4 3 7 6 7s6-3 6-7c0-3.5-2.5-6-6-6z" />
                     <path d="M12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
                   </svg>
-                  <span className="text-xs">
-                    {selectedAddressObj ? `${selectedAddressObj.street}, ${selectedAddressObj.house}` : 'Not specified'}
-                  </span>
+                  <span className="text-xs">{selectedPlaceObj ? selectedPlaceObj.name : 'Not specified'}</span>
                 </div>
-                <button onClick={() => setShowAddressSelect(!showAddressSelect)} className="text-gray-400 hover:text-white">
+                <button onClick={() => setShowPlaceSelect(!showPlaceSelect)} className="text-gray-400 hover:text-white">
                   <EditIcon />
                 </button>
               </div>
-              {showAddressSelect && (
-                <AddressSearch
-                  value={selectedAddress}
-                  onChange={(addressId) => handleUpdateAttribute('address_id', addressId)}
+              {showPlaceSelect && (
+                <PlaceSearch
+                  value={selectedPlace}
+                  onChange={(placeId) => handleUpdateAttribute('place_id', placeId)}
+                  placeholder="Search place..."
                 />
               )}
             </div>

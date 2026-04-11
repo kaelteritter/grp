@@ -14,3 +14,4 @@ class Place(Base):
 
     address = relationship("Address", back_populates="places", lazy="selectin")
     photos = relationship("Photo", back_populates="place", lazy="selectin")
+    

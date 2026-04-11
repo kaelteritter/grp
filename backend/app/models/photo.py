@@ -65,10 +65,7 @@ class Photo(Base):
         ForeignKey("events.id", ondelete="SET NULL"),
         nullable=True
     )
-    address_id: Mapped[int] = mapped_column(
-        ForeignKey("addresses.id", ondelete="SET NULL"),
-        nullable=True
-    )
+
 
     place_id: Mapped[int] = mapped_column(ForeignKey("places.id", ondelete="SET NULL"), nullable=True)
     place = relationship("Place", back_populates="photos", lazy="selectin")
@@ -94,4 +91,3 @@ class Photo(Base):
     season = relationship("Season", back_populates="photos", lazy="selectin")
     daytime = relationship("DayTime", back_populates="photos", lazy="selectin")
     event = relationship("Event", back_populates="photos", lazy="selectin")
-    address = relationship("Address", back_populates="photos", lazy="selectin")

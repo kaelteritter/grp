@@ -13,10 +13,6 @@ from app import services
 router = APIRouter(prefix="/photos", tags=["photos"])
 
 
-def enrich_photo(photo):
-    """Преобразует модель Photo в Pydantic схему"""
-    return PhotoReadSchema.model_validate(photo, from_attributes=True)
-
 
 @router.post("/", response_model=PhotoReadSchema, status_code=status.HTTP_201_CREATED)
 async def create_photo(
@@ -26,8 +22,8 @@ async def create_photo(
     """
     Создать новую фотографию
     """
-    photo = await services.create_photo(db, photo_in)
-    return enrich_photo(photo)
+    return await services.create_photo(db, photo_in)
+
 
 
 @router.get("/", response_model=List[PhotoReadSchema])
@@ -40,8 +36,7 @@ async def read_photos(
     """
     Получить список фотографий с фильтрацией по профилю
     """
-    photos = await services.read_photos(db, profile_id=profile_id, skip=skip, limit=limit)
-    return [enrich_photo(photo) for photo in photos]
+    return await services.read_photos(db, profile_id=profile_id, skip=skip, limit=limit)
 
 
 @router.get("/{photo_id}", response_model=PhotoReadSchema)
@@ -52,8 +47,7 @@ async def read_photo(
     """
     Получить фотографию по ID
     """
-    photo = await services.read_photo(db, photo_id)
-    return enrich_photo(photo)
+    return await services.read_photo(db, photo_id)
 
 
 @router.patch("/{photo_id}", response_model=PhotoReadSchema)
@@ -65,8 +59,7 @@ async def update_photo(
     """
     Обновить фотографию
     """
-    photo = await services.update_photo(db, photo_id, photo_in)
-    return enrich_photo(photo)
+    return await services.update_photo(db, photo_id, photo_in)
 
 
 @router.delete("/{photo_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -102,8 +95,7 @@ async def set_profile_avatar(
     """
     Установить фотографию как аватар профиля
     """
-    photo = await services.set_avatar(db, profile_id, photo_id)
-    return enrich_photo(photo)
+    return await services.set_avatar(db, profile_id, photo_id)
 
 
 

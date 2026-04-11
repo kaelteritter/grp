@@ -10,6 +10,7 @@ import CompanyModal from './components/CompanyModal';
 import SlideshowModal from './components/SlideshowModal';
 import AddressModal from './components/AddressModal';
 import ProfilePage from './pages/ProfilePage';
+import PlaceModal from './components/PlaceModal';
 import { profileApi, photoApi, platformApi, locationApi, regionApi, countryApi, linkApi, clothApi } from './services/api';
 
 function HomePage() {
@@ -45,6 +46,7 @@ function HomePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false); 
   const [clothes, setClothes] = useState([]); // список всех предметов одежды
   const [selectedClothIds, setSelectedClothIds] = useState([]); // выбранные ID
+  const [placeModalOpen, setPlaceModalOpen] = useState(false);
 
   const limit = 20;
 
@@ -354,6 +356,7 @@ function HomePage() {
         <h1 className="text-xl font-light tracking-wider text-white">GRAPHSOCIAL</h1>
 
         <div className="flex gap-2 flex-wrap">
+          <button onClick={() => setPlaceModalOpen(true)} className="text-[10px] text-gray-500 hover:text-white">+ PLACE</button>
           <button onClick={() => setCountryModalOpen(true)} className="text-[10px] text-gray-500 hover:text-white">+ COUNTRY</button>
           <button onClick={() => setRegionModalOpen(true)} className="text-[10px] text-gray-500 hover:text-white">+ REGION</button>
           <button onClick={() => setLocationModalOpen(true)} className="text-[10px] text-gray-500 hover:text-white">+ LOCATION</button>
@@ -537,6 +540,11 @@ function HomePage() {
           { name: 'name', label: 'Name', type: 'text', required: true },
           { name: 'cover_url', label: 'Cover URL', type: 'text' }
         ]}
+      />
+      <PlaceModal
+        isOpen={placeModalOpen}
+        onClose={() => setPlaceModalOpen(false)}
+        onSave={(data) => handleCreateSimple('places', data)}
       />
 
       <SlideshowModal
