@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Query, status
-from typing import List, Optional
+from typing import List
 
 from app.core.database import SessionDep
 from app.schemas.company import CompanyCreateSchema, CompanyReadSchema, CompanyUpdateSchema
@@ -8,10 +8,6 @@ from app import services
 
 router = APIRouter(prefix="/companies", tags=["companies"])
 
-
-def enrich_company(company):
-    """Преобразует модель Company в Pydantic схему"""
-    return CompanyReadSchema.model_validate(company, from_attributes=True)
 
 
 @router.post("/", response_model=CompanyReadSchema, status_code=status.HTTP_201_CREATED)
@@ -22,8 +18,7 @@ async def create_company(
     """
     Создать новую компанию
     """
-    company = await services.create_company(db, company_in)
-    return enrich_company(company)
+    return await services.create_company(db, company_in)
 
 
 @router.get("/", response_model=List[CompanyReadSchema])
@@ -35,8 +30,7 @@ async def read_companies(
     """
     Получить список компаний
     """
-    companies = await services.read_companies(db, skip=skip, limit=limit)
-    return [enrich_company(company) for company in companies]
+    return await services.read_companies(db, skip=skip, limit=limit)
 
 
 @router.get("/{company_id}", response_model=CompanyReadSchema)
@@ -47,8 +41,7 @@ async def read_company(
     """
     Получить компанию по ID
     """
-    company = await services.read_company(db, company_id)
-    return enrich_company(company)
+    return await services.read_company(db, company_id)
 
 
 @router.patch("/{company_id}", response_model=CompanyReadSchema)
@@ -60,8 +53,7 @@ async def update_company(
     """
     Обновить компанию
     """
-    company = await services.update_company(db, company_id, company_in)
-    return enrich_company(company)
+    return await services.update_company(db, company_id, company_in)
 
 
 @router.delete("/{company_id}", status_code=status.HTTP_204_NO_CONTENT)

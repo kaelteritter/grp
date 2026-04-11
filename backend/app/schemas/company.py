@@ -1,38 +1,28 @@
-from typing import Optional, List
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from typing import Annotated, Optional, List
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.address import AddressReadSchema
 
 
 class CompanyBaseSchema(BaseModel):
-    name: str = Field(..., min_length=1, max_length=255)
-
-    @field_validator('name')
-    @classmethod
-    def validate_name(cls, v):
-        if not v or not v.strip():
-            raise ValueError("Название компании не может быть пустым")
-        return v.strip()
+    """
+    Базовые проверки и создание модели из атрибутов
+    """
+    model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
 
 
 class CompanyCreateSchema(CompanyBaseSchema):
-    address_ids: Optional[List[int]] = Field(None, description="Список ID адресов")
+    name: Annotated[str, Field(..., min_length=1, max_length=255)]
+    address_ids: Optional[List[int]] = Field(default_factory=list, description="Список ID адресов")
 
 
-class CompanyUpdateSchema(BaseModel):
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    address_ids: Optional[List[int]] = Field(None, description="Список ID адресов")
-
-    @field_validator('name')
-    @classmethod
-    def validate_name(cls, v):
-        if v is not None and not v.strip():
-            raise ValueError("Название компании не может быть пустым")
-        return v.strip() if v else None
+class CompanyUpdateSchema(CompanyBaseSchema):
+    name: Annotated[str | None, Field(None, min_length=1, max_length=255)]
+    address_ids: Optional[List[int]] = Field(default_factory=list, description="Список ID адресов")
 
 
 class CompanyReadSchema(CompanyBaseSchema):
     id: int
+    name: str
     addresses: Optional[List[AddressReadSchema]] = []
 
-    model_config = ConfigDict(from_attributes=True)

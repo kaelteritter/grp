@@ -5,6 +5,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class CountryBaseSchema(BaseModel):
+    """
+    Базовые проверки и создание модели из атрибутов
+    """
     model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
 
 

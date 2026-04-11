@@ -6,6 +6,7 @@ import LocationModal from './components/LocationModal';
 import RegionModal from './components/RegionModal';
 import CountryModal from './components/CountryModal';
 import SimpleModal from './components/SimpleModal';
+import CompanyModal from './components/CompanyModal';
 import SlideshowModal from './components/SlideshowModal';
 import AddressModal from './components/AddressModal';
 import ProfilePage from './pages/ProfilePage';
@@ -476,15 +477,10 @@ function HomePage() {
         fields={[{ name: 'name', label: 'Name', type: 'text', required: true }]}
       />
 
-      <SimpleModal
+      <CompanyModal
         isOpen={companyModalOpen}
         onClose={() => setCompanyModalOpen(false)}
         onSave={(data) => handleCreateSimple('companies', data)}
-        title="NEW COMPANY"
-        fields={[
-          { name: 'name', label: 'Name', type: 'text', required: true },
-          { name: 'address_ids', label: 'Address IDs (comma separated)', type: 'text', description: 'Enter address IDs separated by commas, e.g. 1,2,3' }
-        ]}
       />
 
       <AddressModal
