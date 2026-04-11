@@ -9,9 +9,6 @@ from app import services
 router = APIRouter(prefix="/clothes", tags=["clothes"])
 
 
-def enrich_cloth(cloth):
-    """Преобразует модель Cloth в Pydantic схему"""
-    return ClothReadSchema.model_validate(cloth, from_attributes=True)
 
 
 @router.post("/", response_model=ClothReadSchema, status_code=status.HTTP_201_CREATED)
@@ -22,8 +19,8 @@ async def create_cloth(
     """
     Создать новый элемент одежды
     """
-    cloth = await services.create_cloth(db, cloth_in)
-    return enrich_cloth(cloth)
+    return await services.create_cloth(db, cloth_in)
+
 
 
 @router.get("/", response_model=List[ClothReadSchema])
@@ -38,8 +35,7 @@ async def read_clothes(
     """
     Получить список одежды с фильтрацией
     """
-    clothes = await services.read_clothes(db, skip=skip, limit=limit, search=search, color=color, material=material)
-    return [enrich_cloth(cloth) for cloth in clothes]
+    return await services.read_clothes(db, skip=skip, limit=limit, search=search, color=color, material=material)
 
 
 @router.get("/{cloth_id}", response_model=ClothReadSchema)
@@ -50,8 +46,7 @@ async def read_cloth(
     """
     Получить элемент одежды по ID
     """
-    cloth = await services.read_cloth(db, cloth_id)
-    return enrich_cloth(cloth)
+    return await services.read_cloth(db, cloth_id)
 
 
 @router.patch("/{cloth_id}", response_model=ClothReadSchema)
@@ -63,8 +58,7 @@ async def update_cloth(
     """
     Обновить элемент одежды
     """
-    cloth = await services.update_cloth(db, cloth_id, cloth_in)
-    return enrich_cloth(cloth)
+    return await services.update_cloth(db, cloth_id, cloth_in)
 
 
 @router.delete("/{cloth_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -89,8 +83,7 @@ async def add_photo_to_cloth(
     """
     Добавить фото к элементу одежды
     """
-    result = await services.add_photo_to_cloth(db, cloth_id, photo_id)
-    return result
+    return await services.add_photo_to_cloth(db, cloth_id, photo_id)
 
 
 @router.delete("/{cloth_id}/photos/{photo_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -11,6 +11,8 @@ engine = create_async_engine(
     echo=settings.DEBUG,
 )
 
+print(settings.DEBUG)
+
 # Для SQLite нужно включить поддержку FOREIGN KEY constraints
 @event.listens_for(engine.sync_engine, "connect")
 def _set_sqlite_pragma(dbapi_connection, connection_record):

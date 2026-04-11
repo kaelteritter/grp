@@ -1,5 +1,7 @@
 # backend/app/core/config.py
 
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
@@ -7,7 +9,7 @@ from app.core.paths import path_to_root
 
 class Settings(BaseSettings):
     APP_NAME: str = "GraphSocial"
-    DEBUG: bool = True
+    DEBUG: bool
 
     # Database settings
     DB_SYSTEM: str = "sqlite"
@@ -23,7 +25,7 @@ class Settings(BaseSettings):
     S3_STORAGE_MEDIAPATH: str = "media"
     
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=Path(path_to_root, ".env"),
         extra="ignore",
     )
 

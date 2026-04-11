@@ -277,7 +277,8 @@ async def read_profile(db: AsyncSession, profile_id: int) -> ProfileReadSchema:
         videos=videos_data,
         connections=connections_data,
         created_at=profile.created_at,
-        updated_at=profile.updated_at
+        updated_at=profile.updated_at,
+        university=profile.university,
     )
 
 
@@ -294,7 +295,8 @@ async def read_profiles(
             selectinload(Profile.links).selectinload(Link.platform),
             selectinload(Profile.photos),
             selectinload(Profile.videos),
-            selectinload(Profile.professions)  # загружаем профессии
+            selectinload(Profile.professions),
+            selectinload(Profile.university).selectinload(Place.address).selectinload(Address.location).selectinload(Location.region).selectinload(Region.country)
         )
 
         if cloth_ids:
@@ -351,7 +353,8 @@ async def read_profiles(
                     videos=videos_data,
                     connections=connections_data,
                     created_at=profile.created_at,
-                    updated_at=profile.updated_at
+                    updated_at=profile.updated_at,
+                    university=profile.university
                 )
             )
         
@@ -394,7 +397,7 @@ async def update_profile(db: AsyncSession, profile_id: int, profile_in: ProfileU
                         status_code=status.HTTP_404_NOT_FOUND,
                         detail=f"Локация с ID {update_data['current_location_id']} не найдена"
                     )
-                
+        
         if profile_in.university_id:
             stmt = select(Place).where(Place.id == profile_in.university_id)
             result = await db.execute(stmt)
@@ -417,7 +420,8 @@ async def update_profile(db: AsyncSession, profile_id: int, profile_in: ProfileU
             selectinload(Profile.current_location).selectinload(Location.region).selectinload(Region.country),
             selectinload(Profile.links).selectinload(Link.platform),
             selectinload(Profile.photos),
-            selectinload(Profile.videos).selectinload(Profile.university)
+            selectinload(Profile.videos),
+            selectinload(Profile.university).selectinload(Place.address).selectinload(Address.location).selectinload(Location.region).selectinload(Region.country)
         )
         result = await db.execute(stmt)
         profile = result.scalar_one()
@@ -446,7 +450,8 @@ async def update_profile(db: AsyncSession, profile_id: int, profile_in: ProfileU
             videos=videos_data,
             connections=connections_data,
             created_at=profile.created_at,
-            updated_at=profile.updated_at
+            updated_at=profile.updated_at,
+            university=profile.university
         )
         
     except IntegrityError as e:
