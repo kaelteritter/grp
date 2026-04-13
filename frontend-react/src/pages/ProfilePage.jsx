@@ -20,9 +20,8 @@ const PhoneIcon = () => (
 
 const HairIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M12 2c-3.5 0-6 2.5-6 6 0 4 3 7 6 7s6-3 6-7c0-3.5-2.5-6-6-6z" />
-    <path d="M12 15v5" />
-    <path d="M9 20h6" />
+    <path d="M12 4c-5 0-6 5-6 8 0 2 1 4 3 5v3h6v-3c2-1 3-3 3-5 0-3-1-8-6-8z" />
+    <path d="M10 19h4" />
   </svg>
 );
 
@@ -260,10 +259,10 @@ const ProfilePage = () => {
   const getHairColorStyle = () => {
     if (!hairColor) return { backgroundColor: '#333' };
     const colorMap = {
-      'блондин': '#F5D7B3',
-      'брюнет': '#3C2415',
-      'шатен': '#8B5A2B',
-      'рыжий': '#D4561E',
+      'блондинка': '#F5D7B3',
+      'брюнетка': '#3C2415',
+      'шатенка': '#8B5A2B',
+      'рыжая': '#D4561E',
       'черный': '#1A1A1A',
       'blonde': '#F5D7B3',
       'brunette': '#3C2415',
@@ -347,7 +346,7 @@ const ProfilePage = () => {
                 <div className="text-xs text-gray-500 space-y-1">
                   {/* Пол */}
                   <div className="flex items-center gap-2">
-                    {profile.sex === 'male' ? '♂ Male' : '♀ Female'}
+                    {profile.sex === 'male' ? '♂ Мужской' : '♀ Женский'}
                   </div>
                   
                   {/* Дата рождения */}
@@ -386,7 +385,6 @@ const ProfilePage = () => {
                   {hairColor && (
                     <div className="flex items-center gap-2">
                       <HairIcon />
-                      <span className="inline-block w-3 h-3 rounded-full" style={getHairColorStyle()} />
                       <span>{hairColor}</span>
                     </div>
                   )}

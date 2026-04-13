@@ -55,10 +55,9 @@ const BriefcaseIcon = () => (
 );
 
 const HairIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M12 2c-3.5 0-6 2.5-6 6 0 4 3 7 6 7s6-3 6-7c0-3.5-2.5-6-6-6z" />
-    <path d="M12 15v5" />
-    <path d="M9 20h6" />
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M12 4c-5 0-6 5-6 8 0 2 1 4 3 5v3h6v-3c2-1 3-3 3-5 0-3-1-8-6-8z" />
+    <path d="M10 19h4" />
   </svg>
 );
 
@@ -125,7 +124,7 @@ const ProfileCard = ({ profile, onEdit, onDelete, onAvatarClick, onNameClick }) 
         {/* Пол - отдельная строка */}
         <div className="flex items-center gap-1.5 text-[10px] text-gray-300 mb-0.5">
           {profile.sex === 'male' ? <MaleIcon /> : <FemaleIcon />}
-          <span>{profile.sex === 'male' ? 'Male' : 'Female'}</span>
+          <span>{profile.sex === 'male' ? 'Мужской' : 'Женский'}</span>
         </div>
         
         {/* Дата рождения - отдельная строка */}
@@ -152,18 +151,13 @@ const ProfileCard = ({ profile, onEdit, onDelete, onAvatarClick, onNameClick }) 
           </div>
         )}
         
-        {/* Цвет волос - отдельная строка, только иконка и точка */}
-        <div className="flex items-center gap-1.5 text-[10px] text-gray-300 mb-0.5">
-          <HairIcon />
-          {hairColor ? (
-            <span 
-              className="inline-block w-2.5 h-2.5 rounded-full" 
-              style={getHairColorStyle()}
-            />
-          ) : (
-            <span className="text-gray-500">—</span>
-          )}
-        </div>
+        {/* Цвет волос - отдельная строка */}
+        {hairColor && (
+          <div className="flex items-center gap-1.5 text-[10px] text-gray-300 mb-0.5">
+            <HairIcon />
+            <span>{hairColor}</span>
+          </div>
+        )}
 
         {profile.university && (
           <div className="flex items-center gap-1.5 text-[10px] text-gray-300 mb-0.5">
