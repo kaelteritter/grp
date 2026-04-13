@@ -148,20 +148,25 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
     }
   };
 
-useEffect(() => {
-  const currentPhotoId = safePhotos[currentIndex]?.id;
-  if (currentPhotoId) {
-    loadTags();
-    loadPhotoAttributes();
-  } else {
-    // Очищаем теги и атрибуты, если фото без id (заглушка)
-    setTags([]);
-    setSelectedSeason('');
-    setSelectedDaytime('');
-    setSelectedEvent('');
-    setSelectedClothes([]);
-  }
-}, [currentIndex, safePhotos]);
+  useEffect(() => {
+    const currentPhotoId = safePhotos[currentIndex]?.id;
+    if (currentPhotoId) {
+      loadTags();
+      loadPhotoAttributes();
+    } else {
+      setTags([]);
+      setSelectedSeason('');
+      setSelectedDaytime('');
+      setSelectedEvent('');
+      setSelectedClothes([]);
+    }
+    // Закрываем все селекты при смене фото
+    setShowSeasonSelect(false);
+    setShowDaytimeSelect(false);
+    setShowEventSelect(false);
+    setShowClothSelect(false);
+    setShowPlaceSelect(false);
+  }, [currentIndex, safePhotos]);
 
   // Поиск профилей
   useEffect(() => {
@@ -579,12 +584,22 @@ useEffect(() => {
                     <path d="M12 2c-3.5 0-6 2.5-6 6 0 4 3 7 6 7s6-3 6-7c0-3.5-2.5-6-6-6z" />
                     <path d="M12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
                   </svg>
-                  <span className="text-xs">{selectedPlaceObj ? selectedPlaceObj.name : 'Not specified'}</span>
+                  <span className="text-xs">              
+                    {selectedPlaceObj && (
+                    <div
+                      className="flex items-center gap-2 cursor-pointer hover:text-blue-400 transition"
+                      onClick={() => navigate(`/place/${selectedPlaceObj.id}/photos`)}
+                    >
+                      <span className="text-xs">{selectedPlaceObj.name}</span>
+                    </div>
+                  )}</span>
+                  
                 </div>
                 <button onClick={() => setShowPlaceSelect(!showPlaceSelect)} className="text-gray-400 hover:text-white">
                   <EditIcon />
                 </button>
               </div>
+
               {showPlaceSelect && (
                 <PlaceSearch
                   value={selectedPlace}

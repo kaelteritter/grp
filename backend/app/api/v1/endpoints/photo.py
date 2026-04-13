@@ -30,13 +30,14 @@ async def create_photo(
 async def read_photos(
     db: SessionDep,
     profile_id: Optional[int] = Query(None, description="Фильтр по ID профиля"),
+    place_id: Optional[int] = Query(None),
     skip: int = Query(0, ge=0, description="Пропустить записей"),
     limit: int = Query(100, ge=1, le=1000, description="Лимит записей")
 ):
     """
     Получить список фотографий с фильтрацией по профилю
     """
-    return await services.read_photos(db, profile_id=profile_id, skip=skip, limit=limit)
+    return await services.read_photos(db, profile_id=profile_id, skip=skip, limit=limit, place_id=place_id)
 
 
 @router.get("/{photo_id}", response_model=PhotoReadSchema)

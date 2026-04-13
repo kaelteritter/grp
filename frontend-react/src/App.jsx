@@ -12,6 +12,7 @@ import SlideshowModal from './components/SlideshowModal';
 import AddressModal from './components/AddressModal';
 import ProfilePage from './pages/ProfilePage';
 import PlaceModal from './components/PlaceModal';
+import PlacePhotosPage from './pages/PlacePhotosPage';
 import { profileApi, photoApi, platformApi, locationApi, regionApi, countryApi, linkApi, clothApi } from './services/api';
 
 function HomePage() {
@@ -589,6 +590,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/profile/:id" element={<ProfilePage />} />
+        <Route path="/place/:placeId/photos" element={<PlacePhotosPage />} />
       </Routes>
     </BrowserRouter>
   );

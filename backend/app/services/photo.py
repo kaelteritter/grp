@@ -195,21 +195,28 @@ async def update_photo(db: AsyncSession, photo_id: int, photo_in: PhotoUpdateSch
 
 
 
-async def read_photos(db: AsyncSession, profile_id: Optional[int] = None, skip: int = 0, limit: int = 100):
+async def read_photos(
+    db: AsyncSession,
+    profile_id: Optional[int] = None,
+    place_id: Optional[int] = None,
+    skip: int = 0,
+    limit: int = 100
+):
     """Получение списка фотографий с фильтрацией по профилю"""
     stmt = select(Photo).options(
         selectinload(Photo.clothes),
         selectinload(Photo.season),
         selectinload(Photo.daytime),
         selectinload(Photo.event),
-        selectinload(Photo.place).selectinload(Place.address)
-        .selectinload(Address.location)
-        .selectinload(Location.region).selectinload(Region.country)
+        selectinload(Photo.place).selectinload(Place.address).selectinload(Address.location).selectinload(Location.region).selectinload(Region.country)
     )
     
     if profile_id:
         stmt = stmt.where(Photo.profile_id == profile_id)
     
+    if place_id:
+        stmt = stmt.where(Photo.place_id == place_id)
+        
     stmt = stmt.order_by(Photo.sort_order, Photo.created_at).offset(skip).limit(limit)
     result = await db.execute(stmt)
     return result.scalars().all()
