@@ -2,11 +2,11 @@ import logging
 from datetime import datetime
 from typing import List, Dict, Any
 from fastapi import HTTPException, status
-from sqlalchemy import select, and_
+from sqlalchemy import delete, insert, select, and_
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.profile import Profile, profile_connections, RelationType
+from app.models.profile import Profile, ProfileConnection, RelationType
 from app.schemas.profile import ProfileConnectionCreateSchema, ProfileConnectionReadSchema
 
 logger = logging.getLogger(__name__)
@@ -45,10 +45,10 @@ async def add_connection(db: AsyncSession, connection_in: ProfileConnectionCreat
             )
         
         # Проверяем, не существует ли уже связь
-        stmt = select(profile_connections).where(
+        stmt = select(ProfileConnection).where(
             and_(
-                profile_connections.c.profile_id == connection_in.profile_id,
-                profile_connections.c.connected_profile_id == connection_in.connected_profile_id
+                ProfileConnection.profile_id == connection_in.profile_id,
+                ProfileConnection.connected_profile_id == connection_in.connected_profile_id
             )
         )
         result = await db.execute(stmt)
@@ -72,7 +72,7 @@ async def add_connection(db: AsyncSession, connection_in: ProfileConnectionCreat
         now = datetime.now()
         
         # Добавляем прямую связь
-        stmt = profile_connections.insert().values(
+        stmt = insert(ProfileConnection).values(
             profile_id=connection_in.profile_id,
             connected_profile_id=connection_in.connected_profile_id,
             relation_type=relation_type_str,
@@ -81,7 +81,7 @@ async def add_connection(db: AsyncSession, connection_in: ProfileConnectionCreat
         await db.execute(stmt)
         
         # Добавляем обратную связь
-        stmt = profile_connections.insert().values(
+        stmt = insert(ProfileConnection).values(
             profile_id=connection_in.connected_profile_id,
             connected_profile_id=connection_in.profile_id,
             relation_type=reverse_relation_str,
@@ -108,19 +108,19 @@ async def remove_connection(db: AsyncSession, profile_id: int, connected_profile
     """Удаление связи между профилями"""
     try:
         # Удаляем прямую связь
-        stmt = profile_connections.delete().where(
+        stmt = delete(ProfileConnection).where(
             and_(
-                profile_connections.c.profile_id == profile_id,
-                profile_connections.c.connected_profile_id == connected_profile_id
+                ProfileConnection.profile_id == profile_id,
+                ProfileConnection.connected_profile_id == connected_profile_id
             )
         )
         result = await db.execute(stmt)
         
         # Удаляем обратную связь
-        stmt = profile_connections.delete().where(
+        stmt = delete(ProfileConnection).where(
             and_(
-                profile_connections.c.profile_id == connected_profile_id,
-                profile_connections.c.connected_profile_id == profile_id
+                ProfileConnection.profile_id == connected_profile_id,
+                ProfileConnection.connected_profile_id == profile_id
             )
         )
         await db.execute(stmt)
@@ -146,7 +146,7 @@ async def remove_connection(db: AsyncSession, profile_id: int, connected_profile
         )
 
 
-async def get_profile_connections(db: AsyncSession, profile_id: int) -> List[ProfileConnectionReadSchema]:
+async def get_profile_connections(db: AsyncSession, profile_id: int):
     """Получение всех связей профиля"""
     try:
         # Проверяем существование профиля
@@ -161,33 +161,21 @@ async def get_profile_connections(db: AsyncSession, profile_id: int) -> List[Pro
             )
         
         # Получаем связи
-        stmt = select(profile_connections).where(
-            profile_connections.c.profile_id == profile_id
+        stmt = select(ProfileConnection).where(
+            ProfileConnection.profile_id == profile_id
+        ).options(
+            selectinload(ProfileConnection.connected_profile)
+            .selectinload(Profile.photos)
         )
         result = await db.execute(stmt)
-        connections = result.all()
+        connections = result.scalars().all()
 
-        connections_data = []
-        for conn in connections:
-            # Загружаем связанный профиль с фото
-            stmt = select(Profile).where(Profile.id == conn.connected_profile_id).options(
-                selectinload(Profile.photos)
-            )
-            prof_result = await db.execute(stmt)
-            connected_profile = prof_result.scalar_one()
-            
-            connections_data.append({
-                "connected_profile_id": conn.connected_profile_id,
-                "connected_profile": connected_profile,
-                "relation_type": conn.relation_type,
-                "created_at": conn.created_at
-            })
-        return connections_data
+        return connections
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Unexpected error in get_profile_connections: {e}")
+        logger.error(f"Unexpected error in get_ProfileConnection: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Ошибка при получении связей: {str(e)}"

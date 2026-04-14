@@ -129,7 +129,6 @@ class ProfileReadSchema(BaseModel):
 
     university: Optional[PlaceReadSchema] = None
 
-
     current_location: Optional[LocationReadSchema] = None
     employments: Optional[List[ProfileEmploymentReadSchema]] = []
 

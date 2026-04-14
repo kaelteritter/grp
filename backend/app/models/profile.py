@@ -1,21 +1,24 @@
 from datetime import datetime
 import enum
 
-from sqlalchemy import CheckConstraint, DateTime, Enum, ForeignKey, Integer, String, Table, Column
+from sqlalchemy import CheckConstraint, DateTime, Enum, ForeignKey, Integer, String, Table, Column, null
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
 
-# Таблица связей между профилями
-profile_connections = Table(
-    "profile_connections",
-    Base.metadata,
-    Column("profile_id", Integer, ForeignKey("profiles.id", ondelete="CASCADE"), primary_key=True),
-    Column("connected_profile_id", Integer, ForeignKey("profiles.id", ondelete="CASCADE"), primary_key=True),
-    Column("relation_type", String(50), nullable=False),
-    Column("created_at", DateTime, default=datetime.now)
-)
+
+
+class ProfileConnection(Base):
+    __tablename__ = "profile_connections"
+
+    profile_id: Mapped[int] = mapped_column(ForeignKey("profiles.id", ondelete="CASCADE"), primary_key=True)
+    connected_profile_id: Mapped[int] = mapped_column(ForeignKey("profiles.id", ondelete="CASCADE"), primary_key=True)
+    relation_type: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, nullable=True)
+
+    profile: Mapped["Profile"] = relationship("Profile", back_populates="connections", foreign_keys=[profile_id])
+    connected_profile: Mapped["Profile"] = relationship("Profile", foreign_keys=[connected_profile_id], lazy="selectin")
 
 
 class Gender(str, enum.Enum):
@@ -147,13 +150,12 @@ class Profile(Base):
     )
     
     # Связи с другими профилями
-    connections = relationship(
-        "Profile",
-        secondary=profile_connections,
-        primaryjoin=id == profile_connections.c.profile_id,
-        secondaryjoin=id == profile_connections.c.connected_profile_id,
-        viewonly=True,
-        lazy="selectin"
+    connections: Mapped[list["ProfileConnection"]] = relationship(
+        "ProfileConnection",
+        foreign_keys="[ProfileConnection.profile_id]",
+        back_populates="profile",
+        lazy="selectin",
+        viewonly=True
     )
 
     # Отметки на фотографиях
