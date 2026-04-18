@@ -99,7 +99,7 @@ async def read_profile(db: AsyncSession, profile_id: int) -> ProfileReadSchema:
     if not profile:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Профиль не найден"
+            detail=f"Профиль {profile_id} не найден"
         )
     
     from sqlalchemy.inspection import inspect
@@ -213,8 +213,8 @@ async def update_profile(db: AsyncSession, profile_id: int, profile_in: ProfileU
 
         await db.commit()
         await db.refresh(profile)
-        
-        return profile
+
+        return await read_profile(db, profile_id)
     
         
     except IntegrityError as e:

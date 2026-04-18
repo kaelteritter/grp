@@ -188,10 +188,12 @@ const ProfilePage = () => {
   };
 
   const handleUpdateProfile = async (profileData, linksData, photos, videos, professionId, companyId, connections) => {
+    console.log('🔄 handleUpdateProfile received connections:', connections);
     try {
       await profileApi.update(id, profileData);
 
       for (const link of linksData) {
+         console.log('➡️ Creating link:', link); 
         if (link.url && link.platform_id) {
           await fetch('http://localhost:8000/api/v1/links/', {
             method: 'POST',
@@ -234,19 +236,43 @@ const ProfilePage = () => {
         });
       }
 
-      for (const conn of connections) {
-        if (conn.profile_id && conn.relation_type) {
-          await fetch('http://localhost:8000/api/v1/connections/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              profile_id: parseInt(id),
-              connected_profile_id: parseInt(conn.profile_id),
-              relation_type: conn.relation_type
-            })
-          });
+      const currentRes = await fetch(`http://localhost:8000/api/v1/connections/${id}`);
+      const currentConnections = await currentRes.json();
+
+      // Находим связи, которые нужно удалить (которые есть в current, но нет в form)
+      const toDelete = currentConnections.filter(
+        c => !connections.some(f => f.profile_id === (c.connected_profile_id || c.connected_profile?.id))
+      );
+
+      // Удаляем только лишние
+      for (const conn of toDelete) {
+        const connectedId = conn.connected_profile_id || conn.connected_profile?.id;
+        await fetch(`http://localhost:8000/api/v1/connections/${id}/${connectedId}`, { method: 'DELETE' });
+      }
+
+      // Находим связи, которые нужно добавить (есть в form, но нет в current)
+      const toAdd = connections.filter(
+        f => !currentConnections.some(c => (c.connected_profile_id || c.connected_profile?.id) === f.profile_id)
+      );
+
+      // Добавляем новые
+      for (const conn of toAdd) {
+        const payload = {
+          profile_id: parseInt(id),
+          connected_profile_id: parseInt(conn.profile_id),
+          relation_type: conn.relation_type
+        };
+        const response = await fetch('http://localhost:8000/api/v1/connections/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.detail || 'Ошибка при добавлении связи');
         }
       }
+
 
       await loadAllData();
       setModalOpen(false);
@@ -558,7 +584,18 @@ const ProfilePage = () => {
                           </div>
                         )}
                       </div>
-                      <div className="text-[10px] text-gray-400">{conn.relation_type}</div>
+                      {/* Добавляем имя */}
+                      <div className="text-[10px] text-white font-medium truncate max-w-[70px]">{profileName}</div>
+                      {/* Тип связи на русском */}
+                      <div className="text-[9px] text-gray-400">
+                        {conn.relation_type === 'friend' ? 'Друг' : 
+                        conn.relation_type === 'mother' ? 'Мать' : 
+                        conn.relation_type === 'father' ? 'Отец' : 
+                        conn.relation_type === 'brother' ? 'Брат' : 
+                        conn.relation_type === 'sister' ? 'Сестра' : 
+                        conn.relation_type === 'daughter' ? 'Дочь' : 
+                        conn.relation_type === 'son' ? 'Сын' : conn.relation_type}
+                      </div>
                     </div>
                   );
                 })}
@@ -846,6 +883,7 @@ const ProfilePage = () => {
         platforms={platforms}
         professions={professions}
         companies={companies}
+        connections={profile?.connections || []}
       />
 
       <SlideshowModal

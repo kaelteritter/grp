@@ -105,9 +105,10 @@ from app.services.cloth import (
 )
 
 from app.services.connection import (
-    add_connection,
-    remove_connection,
-    get_profile_connections
+    create_connection,
+    read_connection_by_profiles_ids,
+    read_connections_by_profile_id,
+    delete_connection_by_profiles_ids,
 )
 
 from app.services.event import (

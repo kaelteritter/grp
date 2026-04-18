@@ -1,11 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import LocationSearch from './LocationSearch';
 import PlaceSearch from './PlaceSearch';
 import ProfessionSearch from './ProfessionSearch';
 import CompanySearch from './CompanySearch';
+import ProfileSearch from './ProfileSearch';
 
 
-const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, professions, companies }) => {
+const ProfileModal = ({ 
+  isOpen, 
+  onClose, 
+  onSave, 
+  profile, 
+  locations, 
+  platforms, 
+  professions, 
+  companies, 
+  connections: propConnections = []
+}) => {
   const [formData, setFormData] = useState({
     first_name: '',
     middle_name: '',
@@ -27,10 +38,17 @@ const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, 
   const [videoPreviews, setVideoPreviews] = useState([]);
   const [professionId, setProfessionId] = useState('');
   const [companyId, setCompanyId] = useState('');
-  const [connections, setConnections] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('basic');
+  const [localConnections, setLocalConnections] = useState([]);
+  const [newConnectionProfileId, setNewConnectionProfileId] = useState(null);
+  const [newConnectionProfileName, setNewConnectionProfileName] = useState('');
+  const [newConnectionRelationType, setNewConnectionRelationType] = useState('friend');
+  const [newConnectionProfileSex, setNewConnectionProfileSex] = useState('male');
+  const initialized = useRef(false);
+  
+
 
   useEffect(() => {
     if (profile) {
@@ -75,7 +93,7 @@ const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, 
       setVideoPreviews([]);
       setProfessionId('');
       setCompanyId('');
-      setConnections([]);
+      setLocalConnections([]);
     }
     setError('');
   }, [profile]);
@@ -87,6 +105,28 @@ const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, 
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (isOpen && !initialized.current) {
+      if (propConnections && propConnections.length > 0) {
+        const mapped = propConnections.map(conn => ({
+          profile_id: conn.connected_profile?.id || conn.profile_id,
+          relation_type: conn.relation_type,
+          profileName: conn.connected_profile 
+            ? [conn.connected_profile.first_name, conn.connected_profile.last_name].filter(Boolean).join(' ')
+            : `ID ${conn.profile_id}`
+        }));
+        setLocalConnections(mapped);
+      } else if (isOpen) {
+        setLocalConnections([]);
+      }
+      initialized.current = true;
+    }
+    if (!isOpen) {
+      initialized.current = false;
+    }
+  }, [isOpen, propConnections]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -153,22 +193,40 @@ const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, 
     setVideoPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
-  const addConnection = () => {
-    setConnections([...connections, { profile_id: '', relation_type: '' }]);
+  const addConnection = (profileId, profileName, relationType) => {
+    console.log('➕ addConnection called with:', { profileId, profileName, relationType });
+    setLocalConnections(prev => {
+      const newConnections = [...prev, { profile_id: profileId, relation_type: relationType, profileName }];
+      console.log('📝 New localConnections:', newConnections);
+      return newConnections;
+    });
   };
 
   const updateConnection = (index, field, value) => {
     const newConnections = [...connections];
     newConnections[index][field] = value;
-    setConnections(newConnections);
+    setConnections(localConnections);
   };
 
   const removeConnection = (index) => {
-    setConnections(connections.filter((_, i) => i !== index));
+    setLocalConnections(localConnections.filter((_, i) => i !== index));
+  };
+
+  const handleSave = () => {
+    const connectionsToSend = localConnections.map(c => ({
+      profile_id: c.profile_id,
+      relation_type: c.relation_type
+    }));
+    onSave(profileData, linksData, photos, videos, professionId, companyId, connectionsToSend);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const connectionsToSend = localConnections.map(c => ({
+      profile_id: c.profile_id,
+      relation_type: c.relation_type
+    }));
+    console.log('📤 Sending connections:', connectionsToSend);
     setLoading(true);
     setError('');
 
@@ -195,7 +253,7 @@ const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, 
         return { ...link, url: fullUrl };
       }).filter(Boolean);
 
-      await onSave(profileData, processedLinks, photos, videos, professionId, companyId, connections);
+      await onSave(profileData, processedLinks, photos, videos, professionId, companyId, connectionsToSend);
       onClose();
     } catch (err) {
       setError(err.message || 'Ошибка сохранения');
@@ -210,6 +268,18 @@ const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, 
   const safeCompanies = companies || [];
   const safeLocations = locations || [];
   const safePlatforms = platforms || [];
+  const getAvailableRelationTypes = (sex) => {
+  const allOptions = [
+    { value: 'friend', label: 'Друг', allowedFor: ['male', 'female'] },
+    { value: 'mother', label: 'Мать', allowedFor: ['female'] },
+    { value: 'father', label: 'Отец', allowedFor: ['male'] },
+    { value: 'brother', label: 'Брат', allowedFor: ['male'] },
+    { value: 'sister', label: 'Сестра', allowedFor: ['female'] },
+    { value: 'daughter', label: 'Дочь', allowedFor: ['female'] },  // Добавлено
+    { value: 'son', label: 'Сын', allowedFor: ['male'] },          // Опционально
+  ];
+    return allOptions.filter(opt => opt.allowedFor.includes(sex));
+  };
 
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" onClick={onClose}>
@@ -396,33 +466,86 @@ const ProfileModal = ({ isOpen, onClose, onSave, profile, locations, platforms, 
             </>
           )}
 
-          {/* Connections Tab */}
           {activeTab === 'connections' && (
-            <>
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <label className="block text-[10px] text-gray-500 uppercase tracking-wider">Profile Connections</label>
-                  <button type="button" onClick={addConnection} className="text-[10px] text-gray-500 hover:text-white">+ ADD</button>
-                </div>
-                {connections.map((conn, idx) => (
-                  <div key={idx} className="flex gap-2 mb-2">
-                    <input type="number" placeholder="Profile ID" value={conn.profile_id} onChange={e => updateConnection(idx, 'profile_id', e.target.value)} className="flex-1 bg-transparent border-b border-gray-800 py-2 text-xs" />
-                    <select value={conn.relation_type} onChange={e => updateConnection(idx, 'relation_type', e.target.value)} className="flex-1 bg-transparent border-b border-gray-800 py-2 text-xs">
-                      <option value="">Relation</option>
-                      <option value="friend">Friend</option>
-                      <option value="best_friend">Best Friend</option>
-                      <option value="colleague">Colleague</option>
-                      <option value="mother">Mother</option>
-                      <option value="father">Father</option>
-                      <option value="sister">Sister</option>
-                      <option value="brother">Brother</option>
-                    </select>
-                    <button type="button" onClick={() => removeConnection(idx)} className="text-gray-500 hover:text-red-500">✖</button>
-                  </div>
-                ))}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-[10px] text-gray-500 uppercase tracking-wider">Profile Connections</label>
+            </div>
+
+            {/* Форма добавления новой связи */}
+            <div className="flex gap-2 items-end mb-4">
+              <div className="flex-1">
+                <label className="block text-[10px] text-gray-500 mb-1">Profile</label>
+                  <ProfileSearch
+                    onChange={(id, name, sex) => {
+                      setNewConnectionProfileId(id);
+                      setNewConnectionProfileName(name);
+                      setNewConnectionProfileSex(sex || 'male'); // если пол не передан, по умолчанию male
+                    }}
+                    placeholder="Search profile by name..."
+                  />
+
               </div>
-            </>
-          )}
+              <div className="w-32">
+                <label className="block text-[10px] text-gray-500 mb-1">Relation</label>
+                <select
+                  value={newConnectionRelationType}
+                  onChange={(e) => setNewConnectionRelationType(e.target.value)}
+                  className="w-full bg-transparent border-b border-gray-800 py-2 text-sm"
+                >
+                  {getAvailableRelationTypes(newConnectionProfileSex).map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  console.log('🔘 Add button clicked', { newConnectionProfileId, newConnectionRelationType });
+                  if (newConnectionProfileId && newConnectionRelationType) {
+                    addConnection(newConnectionProfileId, newConnectionProfileName, newConnectionRelationType);
+                    setNewConnectionProfileId(null);
+                    setNewConnectionProfileName('');
+                    setNewConnectionRelationType('friend');
+                  } else {
+                    console.warn('⚠️ Missing profileId or relationType');
+                  }
+                }}
+                className="mt-5 text-xs text-white bg-gray-700 px-3 py-1 rounded hover:bg-gray-600"
+              >
+                Add
+              </button>
+            </div>
+
+            {/* Список текущих связей */}
+            <div className="space-y-2">
+              {localConnections.map((conn, idx) => {
+                const relationTypeRu = 
+                  conn.relation_type === 'friend' ? 'Друг' :
+                  conn.relation_type === 'mother' ? 'Мать' :
+                  conn.relation_type === 'brother' ? 'Брат' :
+                  conn.relation_type === 'sister' ? 'Сестра' :
+                  conn.relation_type === 'father' ? 'Отец' : conn.relation_type;
+                return (
+                  <div key={idx} className="flex justify-between items-center bg-gray-800/50 p-2 rounded">
+                    <div>
+                      <span className="text-sm text-white">{conn.profileName}</span>
+                      <span className="text-xs text-gray-400 ml-2">({conn.profile_id})</span>
+                      <span className="text-xs text-gray-500 ml-2">– {relationTypeRu}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeConnection(idx)}
+                      className="text-red-400 hover:text-red-300 text-xs"
+                    >
+                      Удалить
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
           <div className="flex gap-3 pt-4 border-t border-gray-800">
             <button type="button" onClick={onClose} className="flex-1 text-sm py-2 text-gray-500 hover:text-white">CANCEL</button>

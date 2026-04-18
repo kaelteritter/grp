@@ -17,12 +17,11 @@ async def add_connection(
     """
     Добавить связь между профилями
     """
-    result = await services.add_connection(db, connection_in)
-    return result
+    return await services.create_connection(db, connection_in)
 
 
 @router.delete("/{profile_id}/{connected_profile_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def remove_connection(
+async def delete_connection(
     db: SessionDep,
     profile_id: int,
     connected_profile_id: int
@@ -30,17 +29,17 @@ async def remove_connection(
     """
     Удалить связь между профилями
     """
-    await services.remove_connection(db, profile_id, connected_profile_id)
+    await services.delete_connection_by_profiles_ids(db, profile_id, connected_profile_id)
     return None
 
 
 @router.get("/{profile_id}", response_model=List[ProfileConnectionReadSchema])
-async def get_profile_connections(
+async def read_connections_by_profile_id(
     db: SessionDep,
     profile_id: int
 ):
     """
     Получить все связи профиля
     """
-    connections = await services.get_profile_connections(db, profile_id)
+    connections = await services.read_connections_by_profile_id(db, profile_id)
     return connections
