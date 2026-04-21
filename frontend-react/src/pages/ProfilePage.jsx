@@ -128,6 +128,8 @@ const ProfilePage = () => {
   const [connections, setConnections] = useState([]);
   const [hoverVideo, setHoverVideo] = useState({});
   const [showAllJobs, setShowAllJobs] = useState(false);
+  const [deletedLinkIds, setDeletedLinkIds] = useState([]);
+
 
 
   useEffect(() => {
@@ -189,21 +191,43 @@ const ProfilePage = () => {
     loadAllData();
   };
 
-  const handleUpdateProfile = async (profileData, linksData, photos, videos, professionId, companyId, connections) => {
-    console.log('🔄 handleUpdateProfile received connections:', connections);
+const handleUpdateProfile = async (profileData, linksData, photos, videos, employments, connections, deletedLinkIds) => {
+  console.log('🔄 handleUpdateProfile received:', { linksData, deletedLinkIds });
     try {
       await profileApi.update(id, profileData);
 
-      for (const link of linksData) {
-         console.log('➡️ Creating link:', link); 
-        if (link.url && link.platform_id) {
-          await fetch('http://localhost:8000/api/v1/links/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...link, profile_id: parseInt(id) })
-          });
-        }
+    // 1. Удаляем помеченные ссылки
+    for (const linkId of deletedLinkIds) {
+      await fetch(`http://localhost:8000/api/v1/links/${linkId}`, { method: 'DELETE' });
+    }
+    
+    // 2. Обрабатываем оставшиеся ссылки (создаём новые, обновляем существующие)
+    // Обновляем существующие ссылки (PATCH) и создаём новые (POST)
+    for (const link of linksData) {
+      if (!link.url || !link.platform_id) continue;
+      const payload = {
+        url: link.url,
+        platform_id: parseInt(link.platform_id)
+      };
+      if (link.id) {
+        // Обновление
+        const resp = await fetch(`http://localhost:8000/api/v1/links/${link.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!resp.ok) throw new Error(`Ошибка обновления ссылки: ${resp.status}`);
+      } else {
+        // Создание
+        const createPayload = { ...payload, profile_id: parseInt(id) };
+        const resp = await fetch('http://localhost:8000/api/v1/links/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(createPayload)
+        });
+        if (!resp.ok) throw new Error(`Ошибка создания ссылки: ${resp.status}`);
       }
+    }
 
       if (photos && photos.length > 0) {
         const formData = new FormData();
@@ -225,18 +249,58 @@ const ProfilePage = () => {
         });
       }
 
-      if (professionId) {
-        await fetch('http://localhost:8000/api/v1/professions/profile/employment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            profile_id: parseInt(id),
-            profession_id: parseInt(professionId),
-            company_id: companyId ? parseInt(companyId) : null,
-            is_current: true
-          })
-        });
+      // Синхронизация профессий (список employments)
+      const currentEmployments = profile.employments || [];
+      const newEmployments = employments || [];
+
+      // Удаляем те, которых нет в новом списке
+      for (const curr of currentEmployments) {
+        const stillExists = newEmployments.some(emp => emp.profession_id === curr.profession_id);
+        if (!stillExists) {
+          await fetch(`http://localhost:8000/api/v1/professions/profile/${id}/profession/${curr.profession_id}`, {
+            method: 'DELETE'
+          });
+        }
       }
+
+      // Добавляем новые или обновляем существующие
+      for (const emp of newEmployments) {
+        if (!emp.profession_id) continue;
+        const exists = currentEmployments.some(curr => curr.profession_id === emp.profession_id);
+        if (!exists) {
+          // Добавление
+          const payload = {
+            profile_id: parseInt(id),
+            profession_id: parseInt(emp.profession_id),
+            company_id: emp.company_id ? parseInt(emp.company_id) : null,
+            is_current: emp.is_current || false
+          };
+          await fetch('http://localhost:8000/api/v1/professions/profile/employment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        } else {
+          // Обновление: удаляем старую, добавляем новую (если изменилась компания)
+          const oldEmp = currentEmployments.find(curr => curr.profession_id === emp.profession_id);
+          if (oldEmp && (oldEmp.company_id !== emp.company_id)) {
+            await fetch(`http://localhost:8000/api/v1/professions/profile/${id}/profession/${emp.profession_id}`, {
+              method: 'DELETE'
+            });
+            const payload = {
+              profile_id: parseInt(id),
+              profession_id: parseInt(emp.profession_id),
+              company_id: emp.company_id ? parseInt(emp.company_id) : null,
+              is_current: emp.is_current || false
+            };
+            await fetch('http://localhost:8000/api/v1/professions/profile/employment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+          }
+        }
+}
 
       const currentRes = await fetch(`http://localhost:8000/api/v1/connections/${id}`);
       const currentConnections = await currentRes.json();

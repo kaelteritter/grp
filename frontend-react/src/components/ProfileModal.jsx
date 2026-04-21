@@ -36,8 +36,6 @@ const ProfileModal = ({
   const [videos, setVideos] = useState([]);
   const [photoPreviews, setPhotoPreviews] = useState([]);
   const [videoPreviews, setVideoPreviews] = useState([]);
-  const [professionId, setProfessionId] = useState('');
-  const [companyId, setCompanyId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('basic');
@@ -46,6 +44,8 @@ const ProfileModal = ({
   const [newConnectionProfileName, setNewConnectionProfileName] = useState('');
   const [newConnectionRelationType, setNewConnectionRelationType] = useState('friend');
   const [newConnectionProfileSex, setNewConnectionProfileSex] = useState('male');
+  const [deletedLinkIds, setDeletedLinkIds] = useState([]);
+  const [employments, setEmployments] = useState([]);
   const initialized = useRef(false);
   
 
@@ -66,11 +66,19 @@ const ProfileModal = ({
         phone: profile.phone || '',
         hair_color: profile.hair_color || '',
       });
-      setLinks(profile.links || []);
-      // Берем первую профессию из списка (если есть)
-      const firstEmployment = profile.employments?.[0];
-      setProfessionId(firstEmployment?.profession_id || '');
-      setCompanyId(firstEmployment?.company_id || '');
+      setLinks((profile.links || []).map(link => ({
+        id: link.id,
+        url: link.url,
+        platform_id: link.platform?.id || link.platform_id
+      })));
+      // Инициализация профессий
+      setEmployments((profile.employments || []).map(emp => ({
+        profession_id: emp.profession_id,
+        company_id: emp.company_id,
+        is_current: emp.is_current,
+        start_year: emp.start_year,
+        end_year: emp.end_year
+      })));
     } else {
       setFormData({
         first_name: '',
@@ -91,9 +99,9 @@ const ProfileModal = ({
       setVideos([]);
       setPhotoPreviews([]);
       setVideoPreviews([]);
-      setProfessionId('');
-      setCompanyId('');
+      setEmployments([]);       // ✅ вместо profile.employments
       setLocalConnections([]);
+      setDeletedLinkIds([]);
     }
     setError('');
   }, [profile]);
@@ -137,14 +145,36 @@ const ProfileModal = ({
     setLinks([...links, { url: '', platform_id: '' }]);
   };
 
+  // Функция удаления ссылки
+  const removeLink = (index) => {
+    const linkToRemove = links[index];
+    if (linkToRemove.id) {
+      setDeletedLinkIds(prev => [...prev, linkToRemove.id]);
+    }
+    setLinks(links.filter((_, i) => i !== index));
+  };
+
+  // Функция обновления ссылки (при изменении URL или платформы)
   const updateLink = (index, field, value) => {
+    console.log(`🔄 updateLink: index=${index}, field=${field}, value=${value}`);
     const newLinks = [...links];
-    newLinks[index][field] = value;
+    newLinks[index] = { ...newLinks[index], [field]: value };
+    console.log('📝 newLinks after update:', newLinks);
     setLinks(newLinks);
   };
 
-  const removeLink = (index) => {
-    setLinks(links.filter((_, i) => i !== index));
+  const addEmployment = () => {
+    setEmployments([...employments, { profession_id: '', company_id: '', is_current: true }]);
+  };
+
+  const updateEmployment = (index, field, value) => {
+    const newEmployments = [...employments];
+    newEmployments[index][field] = value;
+    setEmployments(newEmployments);
+  };
+
+  const removeEmployment = (index) => {
+    setEmployments(employments.filter((_, i) => i !== index));
   };
 
   // Функция для построения полного URL из base_url и введённого пользователем значения
@@ -217,7 +247,7 @@ const ProfileModal = ({
       profile_id: c.profile_id,
       relation_type: c.relation_type
     }));
-    onSave(profileData, linksData, photos, videos, professionId, companyId, connectionsToSend);
+    onSave(profileData, linksData, photos, videos, employments, connectionsToSend);
   };
 
   const handleSubmit = async (e) => {
@@ -226,6 +256,7 @@ const ProfileModal = ({
       profile_id: c.profile_id,
       relation_type: c.relation_type
     }));
+    const linksToSend = links;
     console.log('📤 Sending connections:', connectionsToSend);
     setLoading(true);
     setError('');
@@ -246,14 +277,11 @@ const ProfileModal = ({
         hair_color: formData.hair_color || null,
       };
 
-      const processedLinks = links.map(link => {
-        if (!link.url || !link.platform_id) return null;
-        const platform = platforms.find(p => p.id === parseInt(link.platform_id));
-        const fullUrl = buildFullUrl(platform, link.url);
-        return { ...link, url: fullUrl };
-      }).filter(Boolean);
+      console.log('📦 Current links state before processing:', links);
+      console.log('🔍 Links before filter:', links.map(l => ({ id: l.id, url: l.url, platform_id: l.platform_id, type: typeof l.platform_id })));
+      const processedLinks = links.filter(link => link.url && link.url.trim() !== '' && link.platform_id);
 
-      await onSave(profileData, processedLinks, photos, videos, professionId, companyId, connectionsToSend);
+      await onSave(profileData, processedLinks, photos, videos, employments, connectionsToSend, deletedLinkIds);
       onClose();
     } catch (err) {
       setError(err.message || 'Ошибка сохранения');
@@ -426,13 +454,13 @@ const ProfileModal = ({
                 </div>
                 {links.map((link, idx) => (
                   <div key={idx} className="flex gap-2 mb-2">
-                    <select value={link.platform_id} onChange={e => updateLink(idx, 'platform_id', e.target.value)} className="flex-1 bg-transparent border-b border-gray-800 py-2 text-xs">
+                    <select value={link.platform_id || ''} onChange={e => updateLink(idx, 'platform_id', e.target.value)} className="flex-1 bg-transparent border-b border-gray-800 py-2 text-xs">
                       <option value="">Platform</option>
                       {safePlatforms.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
                     <input
                       type="text"
-                      value={link.url}
+                      value={link.url || ''}
                       onChange={e => updateLink(idx, 'url', e.target.value)}
                       placeholder="username or path"
                       className="flex-1 bg-transparent border-b border-gray-800 py-2 text-xs"
@@ -447,22 +475,29 @@ const ProfileModal = ({
           {/* Profession Tab */}
           {activeTab === 'profession' && (
             <>
-              <div>
-                <label className="block text-[10px] text-gray-500 uppercase tracking-wider mb-1">Profession</label>
-                <ProfessionSearch
-                  value={professionId}
-                  onChange={(id) => setProfessionId(id)}
-                  placeholder="Search profession by name..."
-                />
+              <div className="flex justify-between items-center mb-2">
+                <label className="block text-[10px] text-gray-500 uppercase tracking-wider">Professions</label>
+                <button type="button" onClick={addEmployment} className="text-[10px] text-gray-500 hover:text-white">+ ADD</button>
               </div>
-              <div>
-                <label className="block text-[10px] text-gray-500 uppercase tracking-wider mb-1">Company</label>
-                <CompanySearch
-                  value={companyId}
-                  onChange={(id) => setCompanyId(id)}
-                  placeholder="Search company by name..."
-                />
-              </div>
+              {employments.map((emp, idx) => (
+                <div key={idx} className="flex gap-2 mb-2 items-start">
+                  <div className="flex-1">
+                    <ProfessionSearch
+                      value={emp.profession_id}
+                      onChange={(id) => updateEmployment(idx, 'profession_id', id)}
+                      placeholder="Search profession..."
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <CompanySearch
+                      value={emp.company_id}
+                      onChange={(id) => updateEmployment(idx, 'company_id', id)}
+                      placeholder="Search company..."
+                    />
+                  </div>
+                  <button type="button" onClick={() => removeEmployment(idx)} className="text-red-500 hover:text-red-400">✖</button>
+                </div>
+              ))}
             </>
           )}
 

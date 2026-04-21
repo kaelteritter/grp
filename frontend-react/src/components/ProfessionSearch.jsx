@@ -72,6 +72,9 @@ const ProfessionSearch = ({ value, onChange, placeholder = "Search profession...
         value={query}
         onChange={handleInputChange}
         placeholder={placeholder}
+        autoComplete="off"
+        autoCorrect="off"
+        spellCheck="false"
         className="w-full bg-transparent border-b border-gray-800 py-2 text-sm focus:outline-none focus:border-gray-600 transition"
       />
       {loading && (
