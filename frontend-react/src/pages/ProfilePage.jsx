@@ -127,6 +127,8 @@ const ProfilePage = () => {
   const [companies, setCompanies] = useState([]);
   const [connections, setConnections] = useState([]);
   const [hoverVideo, setHoverVideo] = useState({});
+  const [showAllJobs, setShowAllJobs] = useState(false);
+
 
   useEffect(() => {
     loadAllData();
@@ -484,6 +486,94 @@ const ProfilePage = () => {
                       <span>{hairColor}</span>
                     </div>
                   )}
+
+{profile.employments && profile.employments.length > 0 && (
+  <div className="mt-2">
+    {(() => {
+      const currentJob = profile.employments.find(job => job.is_current === true);
+      const firstJob = profile.employments[0];
+      const displayJob = currentJob || firstJob;
+      const otherJobs = profile.employments.filter(job => 
+        (currentJob ? job !== currentJob : job !== firstJob)
+      );
+      const hasOther = otherJobs.length > 0;
+      
+      return (
+        <div className="text-sm text-gray-500">  {/* ← основной цвет контейнера */}
+          {/* Отображаемая работа (текущая или первая) */}
+          {displayJob && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-gray-500">  {/* ← иконка наследует цвет */}
+                <BriefcaseIcon />
+              </span>
+              <span className="text-gray-500">{displayJob.profession_name}</span>  {/* ← профессия */}
+              {displayJob.company_name && (
+                <>
+                  <span className="text-gray-500">|</span>
+                  <span className="text-gray-500">{displayJob.company_name}</span>  {/* ← компания */}
+                </>
+              )}
+              {(displayJob.start_year || displayJob.end_year) && (
+                <>
+                  <span className="text-gray-500">|</span>
+                  <span className="text-gray-500">
+                    {displayJob.start_year && displayJob.end_year && `${displayJob.start_year} — ${displayJob.end_year}`}
+                    {displayJob.start_year && !displayJob.end_year && displayJob.is_current && `${displayJob.start_year} — present`}
+                    {displayJob.start_year && !displayJob.end_year && !displayJob.is_current && `${displayJob.start_year}`}
+                    {!displayJob.start_year && displayJob.end_year && `until ${displayJob.end_year}`}
+                  </span>
+                </>
+              )}
+              {displayJob.is_current && (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" className="inline-block">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M8 12l3 3 6-6" />
+                </svg>
+              )}
+            </div>
+          )}
+          
+          {/* Остальные работы (скрыты) */}
+          {hasOther && (
+            <div className="mt-1">
+              <button
+                onClick={() => setShowAllJobs(!showAllJobs)}
+                className="text-xs text-gray-500 hover:text-white transition flex items-center gap-1"
+              >
+                {showAllJobs ? '−' : '+'} {otherJobs.length} other position{otherJobs.length > 1 ? 's' : ''}
+              </button>
+              {showAllJobs && (
+                <div className="mt-2 space-y-1 pl-4 border-l border-gray-700">
+                  {otherJobs.map((job, idx) => (
+                    <div key={idx} className="flex items-center gap-2 text-xs text-gray-500 flex-wrap">
+                      <span className="text-gray-500">{job.profession_name}</span>
+                      {job.company_name && (
+                        <>
+                          <span className="text-gray-500">|</span>
+                          <span className="text-gray-500">{job.company_name}</span>
+                        </>
+                      )}
+                      {(job.start_year || job.end_year) && (
+                        <>
+                          <span className="text-gray-500">|</span>
+                          <span className="text-gray-500">
+                            {job.start_year && job.end_year && `${job.start_year} — ${job.end_year}`}
+                            {job.start_year && !job.end_year && `${job.start_year}`}
+                            {!job.start_year && job.end_year && `until ${job.end_year}`}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    })()}
+  </div>
+)}
                   
                   {/* Ссылки с иконками */}
                   {profile.links && profile.links.length > 0 && (
@@ -505,6 +595,8 @@ const ProfilePage = () => {
                   )}
                 </div>
 
+
+
                 {/* Статистика */}
                 <div className="flex gap-4 mt-3">
                   <div className="text-center"><div className="text-sm font-light">{photos.length}</div><div className="text-[10px] text-gray-600">PHOTOS</div></div>
@@ -516,47 +608,6 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          {/* Work Section */}
-          {profile.employments && profile.employments.length > 0 && (
-            <div className="border-b border-gray-800 p-6">
-              <h2 className="text-xs font-light tracking-wider text-gray-500 mb-3">WORK</h2>
-              <div className="space-y-1">
-                {profile.employments.map((job, idx) => (
-                  <div key={idx} className="flex items-baseline gap-2 text-sm flex-wrap">
-                    <button
-                      onClick={() => alert(`Поиск профилей с профессией: ${job.profession_name}`)}
-                      className="font-medium text-white hover:text-blue-400 transition"
-                    >
-                      {job.profession_name}
-                    </button>
-                    {job.company_name && (
-                      <>
-                        <span className="text-gray-500">|</span>
-                        <button
-                          onClick={() => alert(`Страница компании: ${job.company_name}`)}
-                          className="text-gray-300 hover:text-blue-400 transition"
-                        >
-                          {job.company_name}
-                        </button>
-                      </>
-                    )}
-                    {(job.start_year || job.end_year) && (
-                      <>
-                        <span className="text-gray-500">|</span>
-                        <span className="text-gray-500">
-                          {job.start_year && job.end_year && `${job.start_year} — ${job.end_year}`}
-                          {job.start_year && !job.end_year && job.is_current && `${job.start_year} — present`}
-                          {job.start_year && !job.end_year && !job.is_current && `${job.start_year}`}
-                          {!job.start_year && job.end_year && `until ${job.end_year}`}
-                        </span>
-                      </>
-                    )}
-                    {job.is_current && <span className="text-green-500 text-sm" title="Current job">✓</span>}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {connections.length > 0 && (
             <div className="border-b border-gray-800 p-4">

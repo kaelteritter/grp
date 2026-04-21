@@ -16,6 +16,7 @@ from app.models.region import Region
 from app.models.link import Link
 from app.models.profession import Profession
 from app.schemas.profile import ProfileCreateSchema, ProfileUpdateSchema, ProfileReadSchema
+from app.services.profession import get_profile_professions
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +94,7 @@ async def read_profile(db: AsyncSession, profile_id: int) -> ProfileReadSchema:
         )
     )
     
+    
     result = await db.execute(stmt)
     profile = result.scalar_one_or_none()
     
@@ -102,12 +104,7 @@ async def read_profile(db: AsyncSession, profile_id: int) -> ProfileReadSchema:
             detail=f"Профиль {profile_id} не найден"
         )
     
-    from sqlalchemy.inspection import inspect
-
-    for conn in profile.connections:
-        insp = inspect(conn)
-        if "connected_profile" in insp.unloaded:
-            logger.warning(f"⚠️ connected_profile НЕ загружен для связи {conn.id}")
+    profile.employments = await get_profile_professions(db, profile_id)
     
     return profile
 
@@ -160,6 +157,9 @@ async def read_profiles(
         stmt = stmt.offset(skip).limit(limit).order_by(Profile.created_at.desc())
         result = await db.execute(stmt)
         profiles = result.scalars().all()
+
+        for profile in profiles:
+            profile.employments = await get_profile_professions(db, profile.id)
         
         return profiles
         

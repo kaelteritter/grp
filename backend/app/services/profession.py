@@ -255,9 +255,11 @@ async def get_profile_professions(
             employments.c.start_year,
             employments.c.end_year,
             employments.c.is_current,
-            Profession.name.label("profession_name")
+            Profession.name.label("profession_name"),
+            Company.name.label("company_name")
         ).select_from(
-            employments.join(Profession, employments.c.profession_id == Profession.id)
+            employments.join(Profession, employments.c.profession_id == Profession.id
+            ).outerjoin(Company, employments.c.company_id == Company.id)
         ).where(employments.c.profile_id == profile_id)
         
         result = await db.execute(stmt)
@@ -268,6 +270,7 @@ async def get_profile_professions(
                 "profession_id": row.profession_id,
                 "profession_name": row.profession_name,
                 "company_id": row.company_id,
+                "company_name": row.company_name,
                 "start_year": row.start_year,
                 "end_year": row.end_year,
                 "is_current": row.is_current

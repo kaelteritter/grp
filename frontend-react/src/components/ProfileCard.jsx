@@ -170,33 +170,49 @@ const ProfileCard = ({ profile, onEdit, onDelete, onAvatarClick, onNameClick }) 
           </div>
         )}
 
-        {/* Место работы */}
         {profile.employments && profile.employments.length > 0 && (
-          <div className="flex items-center gap-1.5 text-[10px] text-gray-300 mb-0.5">
-            <BriefcaseIcon />
-            <div className="flex flex-wrap items-baseline gap-x-1 gap-y-0">
-              {profile.employments.slice(0, 1).map((job, idx) => (
-                <span key={idx} className="inline-flex items-baseline gap-1">
-                  <span className="hover:text-blue-400 cursor-pointer" onClick={() => alert(job.profession_name)}>
-                    {job.profession_name}
+        <div className="flex items-center gap-1.5 text-[10px] text-gray-300 mb-0.5">
+          <BriefcaseIcon />
+          {(() => {
+            const currentJob = profile.employments.find(job => job.is_current);
+            const otherJobs = profile.employments.filter(job => !job.is_current);
+            return (
+              <div className="flex items-center gap-1 flex-wrap">
+                {currentJob ? (
+                  <>
+                    <span className="hover:text-blue-400 cursor-pointer" onClick={() => alert(currentJob.profession_name)}>
+                      {currentJob.profession_name}
+                    </span>
+                    {currentJob.company_name && (
+                      <>
+                        <span className="text-gray-500">|</span>
+                        <span className="hover:text-blue-400 cursor-pointer" onClick={() => alert(currentJob.company_name)}>
+                          {currentJob.company_name}
+                        </span>
+                      </>
+                    )}
+                    <span className="text-green-500">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M8 12l3 3 6-6" />
+                      </svg>
+                    </span>
+                  </>
+                ) : (
+                  <span className="hover:text-blue-400 cursor-pointer" onClick={() => alert(profile.employments[0].profession_name)}>
+                    {profile.employments[0].profession_name}
                   </span>
-                  {job.company_name && (
-                    <>
-                      <span className="text-gray-500">|</span>
-                      <span className="hover:text-blue-400 cursor-pointer" onClick={() => alert(job.company_name)}>
-                        {job.company_name}
-                      </span>
-                    </>
-                  )}
-                  {job.is_current && <span className="text-green-500 text-[9px]">✓</span>}
-                </span>
-              ))}
-              {profile.employments.length > 1 && (
-                <span className="text-gray-500 text-[9px]">+{profile.employments.length - 1}</span>
-              )}
-            </div>
-          </div>
-        )}
+                )}
+                {otherJobs.length > 0 && (
+                  <span className="text-gray-400 text-[9px] cursor-pointer hover:text-white" onClick={() => alert(otherJobs.map(j => j.profession_name).join(', '))}>
+                    +{otherJobs.length}
+                  </span>
+                )}
+              </div>
+            );
+          })()}
+        </div>
+      )}
         
         {/* Ссылки */}
         {profile.links?.length > 0 && (
