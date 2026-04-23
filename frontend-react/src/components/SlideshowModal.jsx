@@ -70,6 +70,7 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
   
   // Состояния для тегов
   const [isTaggingMode, setIsTaggingMode] = useState(false);
+  const [showTags, setShowTags] = useState(false);
   const [tempTagPosition, setTempTagPosition] = useState({ x: 0.5, y: 0.5 });
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -78,6 +79,8 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
   const [editingTag, setEditingTag] = useState(null);
   const imageRef = useRef(null);
   const searchDebounceRef = useRef(null);
+  
+  
 
   const safePhotos = photos && Array.isArray(photos) ? photos : [];
 
@@ -348,6 +351,7 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
   }, [isOpen, currentIndex, safePhotos.length]);
 
   const currentPhoto = safePhotos[currentIndex];
+  const currentPhotoTagsCount = (tags || []).filter(tag => tag.photo_id === currentPhoto?.id).length;
   
   // ВЫЧИСЛЯЕМ ТЕКУЩИЙ ПРОФИЛЬ ДЛЯ БОКОВОЙ ПАНЕЛИ
   const currentProfile = isGlobal ? currentPhoto?.profile : profile;
@@ -386,18 +390,34 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
           ) : (
             <div className="relative" ref={imageRef} onClick={handleImageClick}>
               <img src={`http://localhost:8000${currentPhoto.url}`} alt="Фото" className="max-w-full max-h-screen object-contain" />
-              {tags.map(tag => (
+            {showTags &&
+            tags
+              .filter(tag => tag.photo_id === currentPhoto?.id)
+              .map(tag => (
                 <div
                   key={tag.id}
                   className="absolute w-6 h-6 bg-yellow-400 rounded-full border-2 border-white cursor-pointer hover:scale-125 transition-transform flex items-center justify-center text-xs font-bold text-black"
-                  style={{ left: `${tag.x * 100}%`, top: `${tag.y * 100}%`, transform: 'translate(-50%, -50%)' }}
+                  style={{
+                    left: `${tag.x * 100}%`,
+                    top: `${tag.y * 100}%`,
+                    transform: 'translate(-50%, -50%)'
+                  }}
                   title={`${tag.profile?.first_name} ${tag.profile?.last_name}`}
-                  onClick={() => navigate(`/profile/${tag.profile_id}`)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (navigate && tag.profile_id) navigate(`/profile/${tag.profile_id}`);
+                  }}
                 >
                   {tag.profile?.photos?.[0] ? (
-                    <img src={`http://localhost:8000${tag.profile.photos[0].url}`} className="w-full h-full rounded-full object-cover" alt="" />
+                    <img
+                      src={`http://localhost:8000${tag.profile.photos[0].url}`}
+                      className="w-full h-full rounded-full object-cover"
+                      alt=""
+                    />
                   ) : (
-                    <span>{(tag.profile?.first_name?.[0] || '') + (tag.profile?.last_name?.[0] || '')}</span>
+                    <span>
+                      {(tag.profile?.first_name?.[0] || '') + (tag.profile?.last_name?.[0] || '')}
+                    </span>
                   )}
                 </div>
               ))}
@@ -433,6 +453,7 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
             <div className="text-sm font-light">{currentProfileFullName}</div>
           </div>
 
+
           {/* Теги */}
           {tags.length > 0 && (
             <div className="mb-4">
@@ -463,6 +484,22 @@ const SlideshowModal = ({ isOpen, onClose, photos, profile, startIndex = 0, isVi
               </div>
             </div>
           )}
+
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowTags(prev => !prev); }}
+            className="absolute bottom-20 right-4 z-20 bg-black/50 backdrop-blur-sm rounded-full p-2 text-white hover:bg-black/70 transition"
+            title="Отметки"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            {currentPhotoTagsCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
+                {currentPhotoTagsCount}
+              </span>
+            )}
+          </button>
 
           {/* Форма добавления/редактирования тега */}
           {!isTaggingMode ? (

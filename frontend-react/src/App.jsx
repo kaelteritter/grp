@@ -82,7 +82,7 @@ function HomePage() {
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
-      if (scrollTop + windowHeight >= documentHeight - 200) {
+      if (scrollTop + windowHeight >= documentHeight - 400) {
         loadProfiles(skip + limit, true, selectedClothIds, searchQuery);
       }
     };
@@ -396,12 +396,13 @@ function HomePage() {
             ))}
           </div>
           {loadingMore && (
-            <div className="flex justify-center py-4">
-              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <div className="flex flex-col items-center justify-center py-6 gap-2">
+              <div className="w-8 h-8 border-2 border-gray-600 border-t-white rounded-full animate-spin"></div>
+              <div className="text-xs text-gray-500">Загрузка...</div>
             </div>
           )}
           {!hasMore && profiles.length > 0 && (
-            <div className="text-center text-gray-500 text-xs py-4">No more profiles</div>
+            <div className="text-center text-gray-500 text-sm py-6">Вы просмотрели все профили</div>
           )}
         </main>
       </div>

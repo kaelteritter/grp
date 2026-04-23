@@ -279,7 +279,13 @@ const ProfileModal = ({
 
       console.log('📦 Current links state before processing:', links);
       console.log('🔍 Links before filter:', links.map(l => ({ id: l.id, url: l.url, platform_id: l.platform_id, type: typeof l.platform_id })));
-      const processedLinks = links.filter(link => link.url && link.url.trim() !== '' && link.platform_id);
+      const processedLinks = links
+      .filter(link => link.url && link.url.trim() !== '' && link.platform_id)
+      .map(link => {
+        const platform = platforms.find(p => p.id === parseInt(link.platform_id));
+        const fullUrl = buildFullUrl(platform, link.url);
+        return { ...link, url: fullUrl };
+      });
 
       await onSave(profileData, processedLinks, photos, videos, employments, connectionsToSend, deletedLinkIds);
       onClose();

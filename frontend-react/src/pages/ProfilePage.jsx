@@ -129,6 +129,7 @@ const ProfilePage = () => {
   const [hoverVideo, setHoverVideo] = useState({});
   const [showAllJobs, setShowAllJobs] = useState(false);
   const [deletedLinkIds, setDeletedLinkIds] = useState([]);
+  
 
 
 
@@ -1009,6 +1010,7 @@ const handleUpdateProfile = async (profileData, linksData, photos, videos, emplo
         profile={profile}
         startIndex={currentIndex}
         isVideo={isVideoSlideshow}
+        tags={tags}
       />
     </div>
   );
